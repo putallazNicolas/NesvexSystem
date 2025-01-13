@@ -1,0 +1,44 @@
+# Archivos de entorno
+.env
+.venv/
+
+# Directorios y archivos de configuración de Flask
+instance/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Directorios de la base de datos
+*.db
+*.sqlite3
+
+# Archivos de dependencias
+venv/
+ENV/
+env/
+*.egg-info/
+
+# Archivos de compilación
+build/
+dist/
+*.egg
+
+# Archivos del editor
+*.swp
+.idea/
+.vscode/
+
+# Archivos de logs
+*.log
+
+# Archivos de caché
+*.cache
+
+# Otros
+*.DS_Store
+
+# Ignorar archivos de sesión de Flask (si usas flask-session con almacenamiento en el sistema de archivos)
+flask_session/
+
+dataneeded.txt
