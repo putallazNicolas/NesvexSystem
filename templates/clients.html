@@ -6,40 +6,44 @@
 
 {% block main %}
 <h1>Lista de Clientes</h1>
-<table>
+<table class="table table-bordered">
     <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Correo</th>
-            <th>Instagram</th>
-            <th>Facebook</th>
-            <th>CUIT</th>
-            <th>Razón Social</th>
-            <th>Condición IVA</th>
-            <th>Compras</th>
-            <th>Notas</th>
+        <tr class="table-active">
+            <th scope="col">Nombre</th>
+            <th scope="col">Contacto</th>
+            <th scope="col">Info Facturación</th>
+            <th scope="col">Compras</th>
+            <th scope="col">Notas</th>
+            <th scope="col">Acciones</th>
         </tr>
     </thead>
     <tbody>
         {% for cliente in clientes %}
         <tr>
-            <td>{{ cliente.id }}</td>
-            <td>{{ cliente.nombre }}</td>
-            <td>{{ cliente.telefono }}</td>
-            <td>{{ cliente.direccion }}</td>
-            <td>{{ cliente.mail }}</td>
-            <td>{{ cliente.instagram }}</td>
-            <td>{{ cliente.facebook }}</td>
-            <td>{{ cliente.cuit }}</td>
-            <td>{{ cliente.razon_social }}</td>
-            <td>{{ cliente.condicion_iva }}</td>
-            <td>{{ cliente.cantidad_compras }}</td>
-            <td>{{ cliente.notas }}</td>
+            <td class="align-middle">{{ cliente.nombre }}</td>
+            <td class="align-middle">
+                <strong>Teléfono:</strong> {{ cliente.telefono }}<br>
+                <strong>Correo:</strong> {{ cliente.mail }}<br>
+                <strong>Instagram:</strong> {{ cliente.instagram }}<br>
+                <strong>Facebook:</strong> {{ cliente.facebook }}
+            </td>
+            <td class="align-middle">
+                <strong>Dirección:</strong> {{ cliente.direccion }}<br>
+                <strong>Razón Social:</strong> {{ cliente.razon_social }}<br>
+                <strong>Condición IVA:</strong> {{ cliente.condicion_iva }}<br>
+                <strong>CUIT:</strong> {{ cliente.cuit }}
+            </td>
+            <td class="align-middle">{{ cliente.cantidad_compras }}</td>
+            <td class="align-middle" style="max-width: 150px;">{{ cliente.notas }}</td>
+            <td class="align-middle">
+                <button class="btn btn-primary">Editar</button>
+                <button class="btn btn-danger">Eliminar</button>
+            </td>
         </tr>
         {% endfor %}
-    </tbody>
+    </tbody>    
 </table>
+
+
+
 {% endblock %}
