@@ -36,14 +36,14 @@
             <td class="align-middle">{{ cliente.cantidad_compras }}</td>
             <td class="align-middle" style="max-width: 150px;">{{ cliente.notas }}</td>
             <td class="align-middle">
-                <button class="btn btn-primary">Editar</button>
-                <button class="btn btn-danger">Eliminar</button>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary">Editar</button>
+                    <button class="btn btn-danger">Eliminar</button>
+                </div>
             </td>
         </tr>
         {% endfor %}
     </tbody>    
 </table>
-
-
 
 {% endblock %}
