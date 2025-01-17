@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Clientes
+{% endblock %}
+
+{% block main %}
+<h1>Lista de Clientes</h1>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th>Correo</th>
+            <th>Instagram</th>
+            <th>Facebook</th>
+            <th>CUIT</th>
+            <th>Razón Social</th>
+            <th>Condición IVA</th>
+            <th>Compras</th>
+            <th>Notas</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cliente in clientes %}
+        <tr>
+            <td>{{ cliente.id }}</td>
+            <td>{{ cliente.nombre }}</td>
+            <td>{{ cliente.telefono }}</td>
+            <td>{{ cliente.direccion }}</td>
+            <td>{{ cliente.mail }}</td>
+            <td>{{ cliente.instagram }}</td>
+            <td>{{ cliente.facebook }}</td>
+            <td>{{ cliente.cuit }}</td>
+            <td>{{ cliente.razon_social }}</td>
+            <td>{{ cliente.condicion_iva }}</td>
+            <td>{{ cliente.cantidad_compras }}</td>
+            <td>{{ cliente.notas }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

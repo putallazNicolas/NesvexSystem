@@ -21,12 +21,12 @@ database = os.getenv("DB_NAME")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 # Conectarse a la base de datos
-db = mysql.connector.connect(
-    host=host,
-    user=user,
-    password=password,
-    database=database
-)
+db_config = {
+    'host': host,
+    'user': user,
+    'password': password,
+    'database': database
+}
 
 def login_required(f):
     """
@@ -52,8 +52,6 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-cursor = db.cursor()
-
 
 @app.route('/')
 @login_required
@@ -77,8 +75,14 @@ def register():
         if not passwordConfirmation:
             return render_template("register.html", alert=True, alertMsg="Please confirm your password")
 
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+
         cursor.execute("SELECT COUNT(*) FROM usuarios WHERE username = %s", (username,))
         (sameUsernameCount,) = cursor.fetchone()
+
+        cursor.close()
+        connection.close()
 
         if sameUsernameCount != 0:
             return render_template("register.html", alert=True, alertMsg="El usuario ya existe")
@@ -88,8 +92,14 @@ def register():
 
         hash = generate_password_hash(password)
 
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+
         cursor.execute("INSERT INTO usuarios (username, hash) VALUES (%s, %s)", (username, hash))
-        db.commit()
+        connection.commit()
+
+        cursor.close()
+        connection.close()
 
         return redirect("/")
 
@@ -118,9 +128,13 @@ def login():
             return render_template("login.html", alert=True, alertMsg = "Introduce la contraseña")
 
         # Query database for username
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
         query = "SELECT id, username, hash FROM usuarios WHERE username = %s"
         cursor.execute(query, (username,))
         result = cursor.fetchone()
+        cursor.close()
+        connection.close()
 
         if result:
             storedId, storedUser, storedHash = result
@@ -149,6 +163,21 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+
+@app.route("/clients")
+def clients():
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+        
+    cursor.execute("SELECT * FROM clientes")
+    clientes = cursor.fetchall()
+
+    
+    cursor.close()
+    connection.close()
+
+    return render_template('clients.html', clientes=clientes)
 
 
 if __name__ == '__main__':
