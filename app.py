@@ -6,6 +6,7 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from random import shuffle
+import re
 
 app = Flask(__name__)
 
@@ -27,6 +28,8 @@ db_config = {
     'password': password,
     'database': database
 }
+
+email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'
 
 def login_required(f):
     """
@@ -184,6 +187,60 @@ def clients():
 def addClient():
     if request.method == "GET":
         return render_template("addClients.html")
+    else:
+        nombre = request.form.get("nombre")
+        telefono = request.form.get("telefono")
+        correo = request.form.get("mail")
+        instagram = request.form.get("ig")
+        facebook = request.form.get("fb")
+        direccion = request.form.get("direccion")
+        razon = request.form.get("razon")
+        condicion = request.form.get("condicion")
+        cuit = request.form.get("cuit")
+        notas = request.form.get("notas")
+
+        if not nombre:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el nombre del cliente")
+        
+        if not telefono:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el telefono del cliente")
+        
+        if not correo:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el correo del cliente")
+        
+        if not direccion:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la direccion del cliente")
+        
+        if not razon:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la razon social del cliente")
+        
+        if not condicion:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la condicion ante el IVA del cliente")
+        
+        if not cuit:
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el CUIT del cliente")
+        
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+
+            # Consulta SQL para insertar datos
+        sql = """
+            INSERT INTO clientes (
+                nombre, telefono, direccion, mail, instagram, facebook, 
+                cuit, razon_social, condicion_iva, notas
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """
+
+            # Ejecutar la consulta con los valores
+        cursor.execute(sql, (nombre, telefono, direccion, correo, instagram, facebook, cuit, razon, condicion, notas))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+        
+        return redirect("/clients")
+
 
 if __name__ == '__main__':
     app.run(debug=True)
