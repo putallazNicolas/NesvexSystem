@@ -165,7 +165,7 @@ def logout():
     return redirect("/")
 
 
-@app.route("/clients")
+@app.route("/clients", methods=["GET"])
 def clients():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
@@ -179,6 +179,11 @@ def clients():
 
     return render_template('clients.html', clientes=clientes)
 
+
+@app.route("/clients/add", methods=["GET", "POST"])
+def addClient():
+    if request.method == "GET":
+        return render_template("addClients.html")
 
 if __name__ == '__main__':
     app.run(debug=True)

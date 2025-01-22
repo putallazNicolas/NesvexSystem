@@ -6,6 +6,9 @@
 
 {% block main %}
 <h1>Lista de Clientes</h1>
+
+<a class="btn btn-primary mb-3" href="/clients/add">Añadir Cliente</a>
+
 <table class="table table-bordered">
     <thead>
         <tr class="table-active">
@@ -37,8 +40,8 @@
             <td class="align-middle" style="max-width: 150px;">{{ cliente.notas }}</td>
             <td class="align-middle">
                 <div class="d-grid gap-2">
-                    <button class="btn btn-primary">Editar</button>
-                    <button class="btn btn-danger">Eliminar</button>
+                    <a class="btn btn-primary">Editar</a>
+                    <a class="btn btn-danger">Eliminar</a>
                 </div>
             </td>
         </tr>
