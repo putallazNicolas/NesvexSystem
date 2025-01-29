@@ -1,7 +1,7 @@
 import os
 import mysql.connector
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
@@ -240,6 +240,34 @@ def addClient():
         connection.close()
         
         return redirect("/clients")
+    
+
+@app.route("/clients/delete", methods=["POST"])
+@login_required
+def deleteClient():
+    client_ID = request.form.get('id')
+
+    if not client_ID:
+        return redirect("/clients"), 400
+
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM clientes WHERE id = %s", (client_ID,))
+    client = cursor.fetchone()
+
+    if not client:
+        cursor.close()
+        connection.close()
+        return redirect("/clients"), 400
+    
+    cursor.execute("DELETE FROM clientes WHERE id = %s", (client_ID,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/clients")
 
 
 if __name__ == '__main__':

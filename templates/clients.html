@@ -7,7 +7,7 @@
 {% block main %}
 <h1>Lista de Clientes</h1>
 
-<a class="btn btn-primary mb-3" href="/clients/add">Añadir Cliente</a>
+<button class="btn btn-outline-dark mb-3" type="submit">Añadir</button>
 
 <table class="table table-bordered">
     <thead>
@@ -40,8 +40,11 @@
             <td class="align-middle" style="max-width: 150px;">{{ cliente.notas }}</td>
             <td class="align-middle">
                 <div class="d-grid gap-2">
-                    <a class="btn btn-primary">Editar</a>
-                    <a class="btn btn-danger">Eliminar</a>
+                    <a class="btn btn-primary d-none">Editar</a>
+                    <form action="/clients/delete" method="POST">
+                        <input type="hidden" name="id" value="{{ cliente.id }}">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
                 </div>
             </td>
         </tr>
