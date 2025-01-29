@@ -59,7 +59,7 @@ def after_request(response):
 @app.route('/')
 @login_required
 def index():
-    return render_template("index.html")
+    return redirect("/clients")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -269,6 +269,19 @@ def deleteClient():
 
     return redirect("/clients")
 
+
+@app.route("/articles")
+@login_required
+def articles():
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM articulos")
+    articulos = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    return render_template("articles.html", articulos = articulos)
 
 if __name__ == '__main__':
     app.run(debug=True)

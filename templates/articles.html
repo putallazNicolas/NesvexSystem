@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Clientes
+{% endblock %}
+
+{% block main %}
+<h1>Lista de Articulos</h1>
+
+<a class="btn btn-outline-dark mb-3" type="submit" href="/articles/add">Añadir</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr class="table-active">
+            <th scope="col">ID</th>
+            <th scope="col">Descripcion</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Color</th>
+            <th scope="col">Costo</th>
+            <th scope="col">Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for articulo in articulos %}
+        <tr>
+            <td class="align-middle">{{ articulo.id }}</td>
+            <td class="align-middle">{{ articulo.descripcion }}</td>
+            <td class="align-middle">{{ articulo.cantidad }}</td>
+            <td class="align-middle">{{ articulo.color }}</td>
+            <td class="align-middle">{{ articulo.costo }}</td>
+            <td class="align-middle">{{ articulo.valor }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6">No hay artículos disponibles.</td>
+        </tr>
+        {% endfor %}
+    </tbody>    
+</table>
+
+{% endblock %}
