@@ -72,11 +72,11 @@ def register():
         passwordConfirmation = request.form.get("confirmation")
 
         if not username:
-            return render_template("register.html", alert=True, alertMsg="Por favor introduce un usuario")
+            return render_template("register.html", alert=True, alertMsg="Por favor introduce un usuario"), 400
         if not password:
-            return render_template("register.html", alert=True, alertMsg="Por favor introduce una contraseña")
+            return render_template("register.html", alert=True, alertMsg="Por favor introduce una contraseña"), 400
         if not passwordConfirmation:
-            return render_template("register.html", alert=True, alertMsg="Please confirm your password")
+            return render_template("register.html", alert=True, alertMsg="Please confirm your password"), 400
 
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
@@ -88,10 +88,10 @@ def register():
         connection.close()
 
         if sameUsernameCount != 0:
-            return render_template("register.html", alert=True, alertMsg="El usuario ya existe")
+            return render_template("register.html", alert=True, alertMsg="El usuario ya existe"), 400
 
         if password != passwordConfirmation:
-            return render_template("register.html", alert=True, alertMsg="Las contraseñas no coinciden")
+            return render_template("register.html", alert=True, alertMsg="Las contraseñas no coinciden"), 400
 
         hash = generate_password_hash(password)
 
@@ -124,11 +124,11 @@ def login():
     if request.method == "POST":
         # Ensure username was submitted
         if not username:
-            return render_template("login.html", alert=True, alertMsg = "Introduce el usuario")
+            return render_template("login.html", alert=True, alertMsg = "Introduce el usuario"), 400
 
         # Ensure password was submitted
         elif not password:
-            return render_template("login.html", alert=True, alertMsg = "Introduce la contraseña")
+            return render_template("login.html", alert=True, alertMsg = "Introduce la contraseña"), 400
 
         # Query database for username
         connection = mysql.connector.connect(**db_config)
@@ -144,7 +144,7 @@ def login():
 
             # Ensure username exists and password is correct
             if not check_password_hash(storedHash, password):
-                return render_template("login.html", alert=True, alertMsg = "Invalid username and/or password")
+                return render_template("login.html", alert=True, alertMsg = "Invalid username and/or password"), 400
 
         # Remember which user has logged in
         session["user_id"] = storedId
@@ -200,25 +200,25 @@ def addClient():
         notas = request.form.get("notas")
 
         if not nombre:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el nombre del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el nombre del cliente"), 400
         
         if not telefono:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el telefono del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el telefono del cliente"), 400
         
         if not correo:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el correo del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el correo del cliente"), 400
         
         if not direccion:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la direccion del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la direccion del cliente"), 400
         
         if not razon:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la razon social del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la razon social del cliente"), 400
         
         if not condicion:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la condicion ante el IVA del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la condicion ante el IVA del cliente"), 400
         
         if not cuit:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el CUIT del cliente")
+            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el CUIT del cliente"), 400
         
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
@@ -297,7 +297,7 @@ def addArticle():
         valor = request.form.get("valor")
 
         if not descripcion or not cantidad or not costo or not valor:
-            return render_template("addarticles.html", alert = True, alertMsg = "Por favor introduce todos los campos obligatorios")
+            return render_template("addarticles.html", alert = True, alertMsg = "Por favor introduce todos los campos obligatorios"), 400
         
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
