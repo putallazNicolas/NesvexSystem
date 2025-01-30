@@ -7,7 +7,7 @@
 {% block main %}
 <h1>Lista de Clientes</h1>
 
-<a class="btn btn-outline-dark mb-3" type="submit" href="/clients/add">Añadir</a>
+<a class="btn btn-outline-dark mb-3" type="submit" href="/clients/add">Añadir Cliente</a>
 
 <table class="table table-bordered">
     <thead>
@@ -40,13 +40,14 @@
             <td class="align-middle" style="max-width: 150px;">{{ cliente.notas }}</td>
             <td class="align-middle">
                 <div class="d-grid gap-2">
-                    <a class="btn btn-primary d-none">Editar</a>
-                    <form action="/clients/delete" method="POST">
-                        <input type="hidden" name="id" value="{{ cliente.id }}">
-                        <button type="submit" class="btn btn-danger">Eliminar</button>
-                    </form>
+                    <a class="btn btn-primary" href="clients/edit/{{ cliente.id }}">Editar</a>
+                    <a class="btn btn-danger" href="clients/delete/{{ cliente.id }}">Eliminar</a>
                 </div>
             </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6">No hay clientes disponibles.</td>
         </tr>
         {% endfor %}
     </tbody>    

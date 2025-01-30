@@ -7,7 +7,7 @@
 {% block main %}
 <h1>Lista de Articulos</h1>
 
-<a class="btn btn-outline-dark mb-3" type="submit" href="/articles/add">Añadir</a>
+<a class="btn btn-outline-dark mb-3" type="submit" href="/articles/add">Añadir Articulo</a>
 
 <table class="table table-bordered">
     <thead>
@@ -30,11 +30,8 @@
             <td class="align-middle">${{ articulo.valor }}</td>
             <td class="align-middle">
                 <div class="d-grid gap-2">
-                    <a class="btn btn-primary d-none">Editar</a>
-                    <form action="/articles/delete" method="POST">
-                        <input type="hidden" name="id" value="{{ articulo.id }}">
-                        <button type="submit" class="btn btn-danger">Eliminar</button>
-                    </form>
+                    <a class="btn btn-primary" href="/articles/edit/{{ articulo.id }}">Editar</a>
+                    <a class="btn btn-danger" href="/articles/delete/{{ articulo.id }}">Eliminar</a>
                 </div>
             </td>
         </tr>

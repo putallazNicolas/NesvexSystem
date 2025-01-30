@@ -242,18 +242,16 @@ def addClient():
         return redirect("/clients")
     
 
-@app.route("/clients/delete", methods=["POST"])
+@app.route("/clients/delete/<int:id>", methods=["GET"])
 @login_required
-def deleteClient():
-    client_ID = request.form.get('id')
-
-    if not client_ID:
+def deleteClient(id):
+    if not id:
         return redirect("/clients"), 400
 
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM clientes WHERE id = %s", (client_ID,))
+    cursor.execute("SELECT * FROM clientes WHERE id = %s", (id,))
     client = cursor.fetchone()
 
     if not client:
@@ -261,13 +259,64 @@ def deleteClient():
         connection.close()
         return redirect("/clients"), 400
     
-    cursor.execute("DELETE FROM clientes WHERE id = %s", (client_ID,))
+    cursor.execute("DELETE FROM clientes WHERE id = %s", (id,))
     connection.commit()
 
     cursor.close()
     connection.close()
 
     return redirect("/clients")
+
+
+@app.route("/clients/edit/<int:client_id>", methods=["GET", "POST"])
+def editClient(client_id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    if request.method == "GET":
+        # Obtener los datos del cliente
+        cursor.execute("SELECT * FROM clientes WHERE id = %s", (client_id,))
+        cliente = cursor.fetchone()
+
+        if not cliente:
+            return "Cliente no encontrado", 404
+
+        cursor.close()
+        connection.close()
+        return render_template("editClient.html", cliente=cliente)
+
+    elif request.method == "POST":
+        # Obtener datos del formulario
+        nombre = request.form.get("nombre")
+        telefono = request.form.get("telefono")
+        correo = request.form.get("mail")
+        instagram = request.form.get("ig")
+        facebook = request.form.get("fb")
+        direccion = request.form.get("direccion")
+        razon = request.form.get("razon")
+        condicion = request.form.get("condicion")
+        cuit = request.form.get("cuit")
+        notas = request.form.get("notas")
+
+        # Validación de datos obligatorios
+        if not nombre or not direccion or not razon or not condicion or not cuit:
+            return render_template("editClient.html", cliente={"id": client_id, "nombre": nombre, "telefono": telefono, "mail": correo, "instagram": instagram, "facebook": facebook, "direccion": direccion, "razon_social": razon, "condicion_iva": condicion, "cuit": cuit, "notas": notas}, alert=True, alertMsg="Todos los campos obligatorios deben completarse"), 400
+
+        # Actualizar el cliente en la base de datos
+        sql = """
+            UPDATE clientes 
+            SET nombre = %s, telefono = %s, mail = %s, instagram = %s, facebook = %s, 
+                direccion = %s, razon_social = %s, condicion_iva = %s, cuit = %s, notas = %s
+            WHERE id = %s
+        """
+        cursor.execute(sql, (nombre, telefono, correo, instagram, facebook, direccion, razon, condicion, cuit, notas, client_id))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/clients")
+
 
 
 @app.route("/articles")
@@ -318,18 +367,16 @@ def addArticle():
         return redirect("/articles")
     
     
-@app.route("/articles/delete", methods=["POST"])
+@app.route("/articles/delete/<int:id>", methods=["GET"])
 @login_required
-def deleteArticle():
-    article_ID = request.form.get('id')
-
-    if not article_ID:
+def deleteArticle(id):
+    if not id:
         return redirect("/clients"), 400
 
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM articulos WHERE id = %s", (article_ID,))
+    cursor.execute("SELECT * FROM articulos WHERE id = %s", (id,))
     client = cursor.fetchone()
 
     if not client:
@@ -337,13 +384,56 @@ def deleteArticle():
         connection.close()
         return redirect("/clients"), 400
     
-    cursor.execute("DELETE FROM articulos WHERE id = %s", (article_ID,))
+    cursor.execute("DELETE FROM articulos WHERE id = %s", (id,))
     connection.commit()
 
     cursor.close()
     connection.close()
 
     return redirect("/articles")
+
+
+@app.route("/articles/edit/<int:id>", methods=["GET", "POST"])
+@login_required
+def editArticle(id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    if request.method == "GET":
+        cursor.execute("SELECT * FROM articulos WHERE id = %s", (id,))
+        articulo = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if not articulo:
+            return "Artículo no encontrado", 404
+
+        return render_template("editarticles.html", articulo=articulo)
+
+    elif request.method == "POST":
+        descripcion = request.form.get("descripcion")
+        cantidad = request.form.get("cantidad")
+        color = request.form.get("color")
+        costo = request.form.get("costo")
+        valor = request.form.get("valor")
+
+        if not descripcion or not cantidad or not costo or not valor:
+            return render_template("editarticles.html", articulo={"id": id, "descripcion": descripcion, "cantidad": cantidad, "color": color, "costo": costo, "valor": valor}, alert=True, alertMsg="Por favor introduce todos los campos obligatorios"), 400
+
+        sql = """
+            UPDATE articulos
+            SET descripcion = %s, cantidad = %s, color = %s, costo = %s, valor = %s
+            WHERE id = %s
+        """
+        cursor.execute(sql, (descripcion, cantidad, color, costo, valor, id))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/articles")
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
