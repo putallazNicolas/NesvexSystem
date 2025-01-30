@@ -432,6 +432,34 @@ def editArticle(id):
         connection.close()
 
         return redirect("/articles")
+    
+
+@app.route("/orders/create", methods=["GET", "POST"])
+@login_required
+def createOrder():
+    if request.method == "GET":
+        # GET CLIENTS AND ARTICLES
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        sql_clients = """
+        SELECT * FROM clientes;
+        """
+
+        cursor.execute(sql_clients)
+        clientes = cursor.fetchall()
+
+        sql_articles = """
+        SELECT * FROM articulos;
+        """
+
+        cursor.execute(sql_articles)
+        articulos = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        render_template("addorders.html", clientes=clientes, articulos=articulos)
 
 
 

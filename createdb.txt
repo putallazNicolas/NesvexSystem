@@ -21,3 +21,23 @@ CREATE TABLE articulos (
     costo DECIMAL(10,2) NOT NULL,
     valor DECIMAL(10,2) NOT NULL
 );
+
+CREATE TABLE pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    estado ENUM('Pendiente de Seña', 'En proceso', 'En entrega', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Pendiente de Seña',
+    costo DECIMAL(10,2) NOT NULL CHECK (costo >= 0),
+    valor DECIMAL(10,2) NOT NULL CHECK (valor >= 0),
+    fecha_de_inicio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_de_entrega DATETIME NULL,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+);
+
+CREATE TABLE articulos_vendidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    articulo_id INT NOT NULL,
+    pedido_id INT NOT NULL,
+    cantidad INT NOT NULL CHECK (cantidad > 0),
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id) ON DELETE CASCADE,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
+);
