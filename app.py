@@ -283,5 +283,67 @@ def articles():
 
     return render_template("articles.html", articulos = articulos)
 
+
+@app.route("/articles/add", methods=["POST", "GET"])
+@login_required
+def addArticle():
+    if request.method == "GET":
+        return render_template("addarticles.html")
+    elif request.method == "POST":
+        descripcion = request.form.get("descripcion")
+        cantidad = request.form.get("cantidad")
+        color = request.form.get("color")
+        costo = request.form.get("costo")
+        valor = request.form.get("valor")
+
+        if not descripcion or not cantidad or not costo or not valor:
+            return render_template("addarticles.html", alert = True, alertMsg = "Por favor introduce todos los campos obligatorios")
+        
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+
+        sql = """
+            INSERT INTO articulos (
+                descripcion, cantidad, color, costo, valor
+            )
+            VALUES (%s, %s, %s, %s, %s);
+        """
+        cursor.execute(sql, (descripcion, cantidad, color, costo, valor))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/articles")
+    
+    
+@app.route("/articles/delete", methods=["POST"])
+@login_required
+def deleteArticle():
+    article_ID = request.form.get('id')
+
+    if not article_ID:
+        return redirect("/clients"), 400
+
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM articulos WHERE id = %s", (article_ID,))
+    client = cursor.fetchone()
+
+    if not client:
+        cursor.close()
+        connection.close()
+        return redirect("/clients"), 400
+    
+    cursor.execute("DELETE FROM articulos WHERE id = %s", (article_ID,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/articles")
+
 if __name__ == '__main__':
     app.run(debug=True)
