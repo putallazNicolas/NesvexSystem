@@ -43,3 +43,6 @@ input::-webkit-inner-spin-button {
     height: 100%;
 }
 
+.article-row {
+    margin-bottom: 10px;
+  }

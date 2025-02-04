@@ -434,7 +434,7 @@ def editArticle(id):
         return redirect("/articles")
     
 
-@app.route("/orders/create", methods=["GET", "POST"])
+@app.route("/orders/add", methods=["GET", "POST"])
 @login_required
 def createOrder():
     if request.method == "GET":
@@ -459,7 +459,7 @@ def createOrder():
         cursor.close()
         connection.close()
 
-        render_template("addorders.html", clientes=clientes, articulos=articulos)
+        return render_template("addorders.html", clientes=clientes, articulos=articulos)
 
 
 

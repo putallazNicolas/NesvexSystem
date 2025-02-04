@@ -5,33 +5,161 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/articles/add" method="post" style="max-width: 400px;">
-        <h2>Añadir un articulo</h2>
-        <p><small>* Significa obligatorio</small></p>
-        <div class="row justify-content-center">
-            <div class="col">
-                <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" autofocus class="form-control" name="descripcion" id="descripcion" placeholder="Descripcion*" type="text">
-                    <label for="descripcion">Descripcion*</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" autofocus class="form-control" name="cantidad" id="cantidad" placeholder="Stock Actual*" type="number">
-                    <label for="cantidad">Stock Actual*</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input maxlength="15" autocomplete="off" class="form-control" name="color" id="color" placeholder="Color" type="text">
-                    <label for="color">Color</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="costo" id="costo" placeholder="Costo*" type="number">
-                    <label for="costo">Costo*</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="valor" id="valor" placeholder="Valor*" type="number">
-                    <label for="valor">Valor*</label>
-                </div>
+  <div class="container">
+    <h1 class="mb-4">Crear Nuevo Pedido</h1>
+    <!-- El formulario se envía a una ruta definida en Flask -->
+    <form method="POST" action="/orders/add" style="max-width: 700px;">
+      <!-- Selección de cliente -->
+      <div class="form-group">
+        <label for="cliente">Cliente</label>
+        <select class="form-control" id="cliente" name="cliente">
+          {% for cliente in clientes %}
+            <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <!-- Selector de fecha estimada de entrega -->
+      <div class="form-group">
+        <label for="fechaEntrega">Fecha Estimada de Entrega</label>
+        <input type="date" class="form-control" id="fechaEntrega" name="fechaEntrega">
+      </div>
+      <!-- Sección de artículos -->
+      <div class="form-group">
+        <label>Artículos</label>
+        <div id="articulos-container">
+          <!-- Fila de artículo por defecto -->
+          <div class="article-row row mb-2">
+            <!-- Selección del artículo -->
+            <div class="col-md-4">
+              <select class="form-control articulo-select" name="articulos[0][id]">
+                {% for articulo in articulos %}
+                  <option value="{{ articulo.id }}"
+                    data-costo="{{ articulo.costo }}"
+                    data-valor="{{ articulo.valor }}">
+                    {{ articulo.descripcion }} - Costo: {{ articulo.costo }} - Precio: {{ articulo.valor }}
+                  </option>
+                {% endfor %}
+              </select>
             </div>
+            <!-- Cantidad -->
+            <div class="col">
+              <input type="number" min="1" class="form-control cantidad-input" name="articulos[0][cantidad]" value="1">
+            </div>
+            <!-- Costo Total del Artículo -->
+            <div class="col-md">
+              <input type="text" class="form-control costo-total-articulo" name="articulos[0][costo_total]" readonly value="0.00">
+            </div>
+            <!-- Botón de eliminar -->
+            <div class="col-md-1">
+              <button type="button" class="btn btn-danger remove-article" disabled>X</button>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-outline-dark" type="submit">Añadir</button>
+        <!-- Botón para agregar otro artículo -->
+        <button type="button" class="btn btn-primary mt-2" id="add-article">Agregar Artículo</button>
+      </div>
+      <!-- Totales del Pedido -->
+      <div class="form-group">
+        <label for="totalCostoPedido">Costo Total del Pedido</label>
+        <input type="text" class="form-control" id="totalCostoPedido" name="totalCostoPedido" readonly value="0.00">
+      </div>
+      <div class="form-group">
+        <label for="totalPrecioPedido">Precio Total del Pedido</label>
+        <input type="text" class="form-control" id="totalPrecioPedido" name="totalPrecioPedido" value="0.00">
+      </div>
+      
+      <!-- Botón para iniciar el pedido -->
+      <button type="submit" class="btn btn-success">Iniciar Pedido</button>
     </form>
+  </div>
+
+  <!-- jQuery y Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  
+  <script>
+    // Variable para el índice de los artículos (para nombrar correctamente los inputs)
+    let articleIndex = 1;
+
+    // Función para actualizar costo y precio de un artículo en una fila determinada
+    function updateArticleCosts(row) {
+      // Obtenemos la opción seleccionada y sus datos
+      const selectedOption = row.find('.articulo-select option:selected');
+      const costoUnitario = parseFloat(selectedOption.data('costo')) || 0;
+      const precioUnitario = parseFloat(selectedOption.data('valor')) || 0;
+      const cantidad = parseInt(row.find('.cantidad-input').val()) || 0;
+      const costo = costoUnitario * cantidad;
+      const precio = precioUnitario * cantidad;
+      row.find('.costo-total-articulo').val(costo.toFixed(2));
+      row.find('.precio-total-articulo').val(precio.toFixed(2));
+    }
+
+    // Función para actualizar los totales del pedido
+    function updateTotals() {
+      let totalCosto = 0;
+      let totalPrecio = 0;
+      $('.article-row').each(function() {
+        totalCosto += parseFloat($(this).find('.costo-total-articulo').val()) || 0;
+        totalPrecio += parseFloat($(this).find('.precio-total-articulo').val()) || 0;
+      });
+      $('#totalCostoPedido').val(totalCosto.toFixed(2));
+      // Solo se actualiza el precio total si no se está editando manualmente
+      if (!$('#manualTogglePrecio').is(':checked')) {
+        $('#totalPrecioPedido').val(totalPrecio.toFixed(2));
+      }
+    }
+
+    $(document).ready(function() {
+      // Inicializamos los totales en la fila por defecto
+      updateArticleCosts($('.article-row'));
+      updateTotals();
+      
+      // Al cambiar el artículo seleccionado o la cantidad, se recalculan los totales de la fila y del pedido
+      $('#articulos-container').on('change', '.articulo-select, .cantidad-input', function() {
+        const row = $(this).closest('.article-row');
+        updateArticleCosts(row);
+        updateTotals();
+      });
+
+      // Agregar nueva fila de artículo
+      $('#add-article').click(function() {
+    const newRow = $('.article-row').first().clone();
+
+    // Actualizamos los nombres de los inputs para que sean únicos
+    newRow.find('select, input').each(function() {
+        const name = $(this).attr('name');
+        if (name) {
+            const newName = name.replace(/\[\d+\]/, '[' + articleIndex + ']');
+            $(this).attr('name', newName);
+        }
+    });
+
+    // Reiniciamos los valores de cantidad y costo
+    newRow.find('.cantidad-input').val(1);
+    newRow.find('.costo-total-articulo').val('0.00');
+    newRow.find('.precio-total-articulo').val('0.00');
+
+    // Habilitamos el botón de eliminar en la nueva fila
+    newRow.find('.remove-article').prop('disabled', false);
+
+    // Añadimos la nueva fila al contenedor
+    $('#articulos-container').append(newRow);
+
+    // Disparar manualmente el evento change en el select para actualizar los valores
+    newRow.find('.articulo-select').trigger('change');
+
+    articleIndex++;
+    updateTotals();
+});
+
+
+      // Eliminar una fila de artículo (sólo si hay más de una)
+      $('#articulos-container').on('click', '.remove-article', function() {
+        if ($('#articulos-container .article-row').length > 1) {
+          $(this).closest('.article-row').remove();
+          updateTotals();
+        }
+      });
+    });
+  </script>
 {% endblock %}
