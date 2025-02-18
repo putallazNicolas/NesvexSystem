@@ -7,6 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from random import shuffle
 import re
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 
@@ -441,8 +442,8 @@ def orders():
     cursor = connection.cursor(dictionary=True)
 
     sql_pedidos = """
-    SELECT * FROM pedidos 
-    WHERE estado <> "Entregado" AND estado <> "Cancelado";
+    SELECT * FROM pedidos
+    ORDER BY FIELD(estado, 'Pendiente de Seña', 'En proceso', 'En entrega', 'Entregado', 'Cancelado') ASC;
     """
 
     sql_articulos_vendidos = """
@@ -464,19 +465,22 @@ def orders():
         cursor.execute(sql_articulos_vendidos, (pedido["id"], ))
         pedido["articulos_vendidos"] = cursor.fetchall()
 
+        pedido["costo"] = 0
+
         cursor.execute(sql_clientes, (pedido["cliente_id"], ))
         pedido["cliente"] = cursor.fetchone()
 
         for articulo in pedido["articulos_vendidos"]:
             cursor.execute(sql_articulos, (articulo["id"], ))
             articulo["info"] = cursor.fetchone()
+            pedido["costo"] += articulo["info"]["costo"]
 
     cursor.close()
     connection.close()
 
     return render_template("orders.html", pedidos=pedidos)
     #return jsonify(data)
-    
+
 
 @app.route("/orders/add", methods=["GET", "POST"])
 @login_required
@@ -550,10 +554,89 @@ def createOrder():
         connection.close()
 
         return redirect("/orders")
+    
+
+@app.route("/orders/edit/state/<int:id>/next", methods=["GET"])
+@login_required
+def nextState(id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_select = """
+    SELECT estado FROM pedidos WHERE id = %s;
+    """
+
+    cursor.execute(sql_select, (id, ))
+    pedido = cursor.fetchone()
+
+    sql_update = """
+        UPDATE pedidos
+        SET estado = %s
+        WHERE id = %s
+        """
+
+    if pedido["estado"] == "Pendiente de Seña":
+        cursor.execute(sql_update, ("En proceso", id))
+    elif pedido["estado"] == "En proceso":
+        cursor.execute(sql_update, ("En entrega", id))
+    elif pedido["estado"] == "En entrega":
+        cursor.execute(sql_update, ("Entregado", id))
+    elif pedido["estado"] == "Entregado":
+        cursor.execute(sql_update, ("Cancelado", id))
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    referrer_path = urlparse(request.referrer).path  # Obtiene solo la ruta de la URL del referrer
+
+    if referrer_path == "/orders" or referrer_path == "/orders#":
+        return redirect("/orders")
+    else:
+        return redirect("/orders/finished")
 
 
+@app.route("/orders/edit/state/<int:id>/prev", methods=["GET"])
+@login_required
+def prevState(id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_select = """
+    SELECT estado FROM pedidos WHERE id = %s;
+    """
+
+    cursor.execute(sql_select, (id, ))
+    pedido = cursor.fetchone()
+
+    sql_update = """
+        UPDATE pedidos
+        SET estado = %s
+        WHERE id = %s
+        """
+
+    if pedido["estado"] == "En proceso":
+        cursor.execute(sql_update, ("Pendiente de seña", id))
+    elif pedido["estado"] == "En entrega":
+        cursor.execute(sql_update, ("En proceso", id))
+    elif pedido["estado"] == "Entregado":
+        cursor.execute(sql_update, ("En entrega", id))
+    elif pedido["estado"] == "Cancelado":
+        cursor.execute(sql_update, ("Entregado", id))
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    referrer_path = urlparse(request.referrer).path  # Obtiene solo la ruta de la URL del referrer
+    
+    if referrer_path == "/orders" or referrer_path == "/orders#":
+        return redirect("/orders")
+    else:
+        return redirect("/orders/finished")
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
-    #app.run(host='0.0.0.0', port=5000, debug=True)
+    #app.run(host='0.0.0.0', port=5000, debug=True) # para celular
 

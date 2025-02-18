@@ -8,49 +8,49 @@ Pedidos
 <h1>Pedidos</h1>
 
 <a class="btn btn-outline-dark mb-3" type="submit" href="/orders/add">Añadir Pedido</a>
-<a class="btn btn-outline-dark mb-3" type="submit" href="/orders/finished">Pedidos Terminados</a>
 
 {% for pedido in pedidos %}
 
-<div class="card text-center mx-auto mb-3" style="max-width: 800px;">
+<div class="card text-center mx-auto mb-3" style="max-width: 500px;">
     {% if pedido["estado"] == "Pendiente de Seña" %}
-    <div class="alert alert-primary" role="alert">
-        Pedido pendiente de seña.
+    <div class="alert alert-secondary" role="alert">
+        Pedido pendiente de seña - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
     </div>
     {% elif pedido["estado"] == "En proceso" %}
     <div class="alert alert-warning" role="alert">
-        Pedido en proceso.
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido en proceso - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
     </div>
     {% elif pedido["estado"] == "En entrega" %}
     <div class="alert alert-info" role="alert">
-        Pedido en entrega.
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido en entrega - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
     </div>
     {% elif pedido["estado"] == "Entregado" %}
     <div class="alert alert-success" role="alert">
-        Pedido entregado.
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido entregado - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Cancelar</a>
     </div>
     {% elif pedido["estado"] == "Cancelado" %}
     <div class="alert alert-danger" role="alert">
-        Pedido cancelado.
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido cancelado
     </div>
     {% endif %}
 
     <div class="card-body">
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="">
                 <div class="card-body">
-                    <h5 class="card-title">Información</h5>
+                    <h4 class="card-title">Información</h4>
                     <div class="card-text"><strong>Cliente:</strong> {{ pedido["cliente"]["nombre"] }}</div>
                     <div class="card-text"><strong>Inicio:</strong> {{ pedido["fecha_de_inicio"] }}</div>
                     <div class="card-text"><strong>Entrega Estimada:</strong> {{ pedido["fecha_de_entrega"] }}</div>
                     <div class="card-text"><strong>Costo Total:</strong> {{ pedido["costo"] }}</div>
                     <div class="card-text"><strong>Valor:</strong> {{ pedido["valor"] }}</div>
-                    <a href="#" class="btn btn-primary mt-3">Editar Pedido</a>
+                    <a href="/orders/edit/{{ pedido['id'] }}" class="btn btn-primary mt-3">Editar Pedido</a>
                 </div>
             </div>
-            <div class="col-md-6">
+            <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
+            <div class="">
                 <div class="card-body">
-                    <h5 class="card-title">Articulos</h5>
+                    <h4 class="card-title">Articulos</h4>
                     <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
                     {% for articulo in pedido["articulos_vendidos"] %}
                     <div class="card-text"><strong>Articulo:</strong> {{ articulo["info"]["descripcion"] }}</div>
@@ -64,6 +64,9 @@ Pedidos
         </div>
     </div>
 </div>
+{% else %}
+
+<h3>No hay nada por acá</h3>
 
 {% endfor %}
 
