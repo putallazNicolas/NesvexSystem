@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Pedidos
+{% endblock %}
+
+{% block main %}
+<h1>Pedidos</h1>
+
+<a class="btn btn-outline-dark mb-3" type="submit" href="/orders/add">Añadir Pedido</a>
+<a class="btn btn-outline-dark mb-3" type="submit" href="/orders/finished">Pedidos Terminados</a>
+
+{% for pedido in pedidos %}
+
+<div class="card text-center mx-auto mb-3" style="max-width: 800px;">
+    {% if pedido["estado"] == "Pendiente de Seña" %}
+    <div class="alert alert-primary" role="alert">
+        Pedido pendiente de seña.
+    </div>
+    {% elif pedido["estado"] == "En proceso" %}
+    <div class="alert alert-warning" role="alert">
+        Pedido en proceso.
+    </div>
+    {% elif pedido["estado"] == "En entrega" %}
+    <div class="alert alert-info" role="alert">
+        Pedido en entrega.
+    </div>
+    {% elif pedido["estado"] == "Entregado" %}
+    <div class="alert alert-success" role="alert">
+        Pedido entregado.
+    </div>
+    {% elif pedido["estado"] == "Cancelado" %}
+    <div class="alert alert-danger" role="alert">
+        Pedido cancelado.
+    </div>
+    {% endif %}
+
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card-body">
+                    <h5 class="card-title">Información</h5>
+                    <div class="card-text"><strong>Cliente:</strong> {{ pedido["cliente"]["nombre"] }}</div>
+                    <div class="card-text"><strong>Inicio:</strong> {{ pedido["fecha_de_inicio"] }}</div>
+                    <div class="card-text"><strong>Entrega Estimada:</strong> {{ pedido["fecha_de_entrega"] }}</div>
+                    <div class="card-text"><strong>Costo Total:</strong> {{ pedido["costo"] }}</div>
+                    <div class="card-text"><strong>Valor:</strong> {{ pedido["valor"] }}</div>
+                    <a href="#" class="btn btn-primary mt-3">Editar Pedido</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-body">
+                    <h5 class="card-title">Articulos</h5>
+                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
+                    {% for articulo in pedido["articulos_vendidos"] %}
+                    <div class="card-text"><strong>Articulo:</strong> {{ articulo["info"]["descripcion"] }}</div>
+                    <div class="card-text"><strong>Cantidad:</strong> {{ articulo["cantidad"] }}</div>
+                    <div class="card-text"><strong>Costo Unitario:</strong> {{ articulo["info"]["costo"] }}</div>
+                    <div class="card-text"><strong>Costo Total:</strong> {{ articulo["info"]["costo"] * articulo["cantidad"] }}</div>
+                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+
+
+{% endblock %}

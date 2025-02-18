@@ -59,7 +59,7 @@ def after_request(response):
 @app.route('/')
 @login_required
 def index():
-    return redirect("/clients")
+    return redirect("/orders")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -446,40 +446,36 @@ def orders():
     """
 
     sql_articulos_vendidos = """
-    SELECT * FROM articulos_vendidos;
+    SELECT * FROM articulos_vendidos WHERE pedido_id = %s;
     """
 
     sql_articulos = """
-    SELECT * FROM articulos;
+    SELECT * FROM articulos WHERE id = %s;
     """
 
     sql_clientes = """
-    SELECT * FROM clientes;
+    SELECT * FROM clientes WHERE id = %s;
     """
 
     cursor.execute(sql_pedidos)
     pedidos = cursor.fetchall()
 
-    cursor.execute(sql_articulos_vendidos)
-    articulos_vendidos = cursor.fetchall()
+    for pedido in pedidos:
+        cursor.execute(sql_articulos_vendidos, (pedido["id"], ))
+        pedido["articulos_vendidos"] = cursor.fetchall()
 
-    cursor.execute(sql_articulos)
-    articulos = cursor.fetchall()
+        cursor.execute(sql_clientes, (pedido["cliente_id"], ))
+        pedido["cliente"] = cursor.fetchone()
 
-    cursor.execute(sql_clientes)
-    clientes = cursor.fetchall()
+        for articulo in pedido["articulos_vendidos"]:
+            cursor.execute(sql_articulos, (articulo["id"], ))
+            articulo["info"] = cursor.fetchone()
 
     cursor.close()
     connection.close()
 
-    data = {
-        "pedidos": pedidos,
-        "articulos_vendidos": articulos_vendidos,
-        "articulos": articulos,
-        "clientes": clientes,
-    }
-
-    return render_template("orders.html", data=data)
+    return render_template("orders.html", pedidos=pedidos)
+    #return jsonify(data)
     
 
 @app.route("/orders/add", methods=["GET", "POST"])
@@ -559,3 +555,5 @@ def createOrder():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    #app.run(host='0.0.0.0', port=5000, debug=True)
+
