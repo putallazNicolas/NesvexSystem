@@ -434,6 +434,54 @@ def editArticle(id):
         return redirect("/articles")
     
 
+@app.route("/orders", methods=["GET"])
+@login_required
+def orders():
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_pedidos = """
+    SELECT * FROM pedidos 
+    WHERE estado <> "Entregado" AND estado <> "Cancelado";
+    """
+
+    sql_articulos_vendidos = """
+    SELECT * FROM articulos_vendidos;
+    """
+
+    sql_articulos = """
+    SELECT * FROM articulos;
+    """
+
+    sql_clientes = """
+    SELECT * FROM clientes;
+    """
+
+    cursor.execute(sql_pedidos)
+    pedidos = cursor.fetchall()
+
+    cursor.execute(sql_articulos_vendidos)
+    articulos_vendidos = cursor.fetchall()
+
+    cursor.execute(sql_articulos)
+    articulos = cursor.fetchall()
+
+    cursor.execute(sql_clientes)
+    clientes = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    data = {
+        "pedidos": pedidos,
+        "articulos_vendidos": articulos_vendidos,
+        "articulos": articulos,
+        "clientes": clientes,
+    }
+
+    return render_template("orders.html", data=data)
+    
+
 @app.route("/orders/add", methods=["GET", "POST"])
 @login_required
 def createOrder():
@@ -460,6 +508,52 @@ def createOrder():
         connection.close()
 
         return render_template("addorders.html", clientes=clientes, articulos=articulos)
+    else:
+        cliente_id = request.form.get('cliente')
+        fecha_entrega = request.form.get('fechaEntrega')
+
+        articulos = []
+        for key in request.form:
+            if key.startswith("articulos[") and key.endswith("[id]"):
+                index = key.split("[")[1].split("]")[0]  # Extraer el índice del artículo
+                articulo_id = request.form.get(f"articulos[{index}][id]")
+                cantidad = request.form.get(f"articulos[{index}][cantidad]")
+                costo_total = request.form.get(f"articulos[{index}][costo_total]")
+
+                articulos.append({
+                    "id": articulo_id,
+                    "cantidad": int(cantidad) if cantidad else 1,
+                    "costo_total": float(costo_total) if costo_total else 0.0
+                })
+
+        total_costo = request.form.get('totalCostoPedido')
+        total_precio = request.form.get('totalPrecioPedido')
+        
+        # GET CLIENTS AND ARTICLES
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        sql_pedidos = """
+        INSERT INTO pedidos (cliente_id, costo, valor, fecha_de_entrega) VALUES (%s, %s, %s, %s)
+        """
+
+        cursor.execute(sql_pedidos, (cliente_id, total_costo, total_precio, fecha_entrega))
+        connection.commit()
+
+        pedido_id = cursor.lastrowid
+
+        for articulo in articulos:
+            sql_articulo = """
+            INSERT INTO articulos_vendidos (articulo_id, pedido_id, cantidad, costo_total) VALUES (%s, %s, %s, %s)
+            """
+
+            cursor.execute(sql_articulo, (articulo["id"], pedido_id, articulo["cantidad"], articulo["costo_total"]))
+            connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/orders")
 
 
 
