@@ -20,7 +20,16 @@ host = os.getenv("DB_HOST")
 user = os.getenv("DB_USER")
 password = os.getenv("DB_PASSWORD")
 database = os.getenv("DB_NAME")
+database_url = os.getenv("DB_URL")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
+
+db_url = urlparse(database_url)
+
+if database_url:
+    host = db_url.hostname
+    user = db_url.username
+    password = db_url.password
+    database = db_url.path[1:]
 
 # Conectarse a la base de datos
 db_config = {
