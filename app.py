@@ -74,7 +74,7 @@ def index():
 
 
 @app.route("/register", methods=["GET", "POST"])
-@login_required
+#@login_required # unavailable temporally because of first user
 def register():
     """Register user"""
     if request.method == "POST":
@@ -775,7 +775,7 @@ def seeOrder(order_id):
     return render_template("order.html", pedido=pedido, cliente=cliente, articulos = articulos)
 
 
-@app.route("/CREATEDATABASE", methods=["GET"])
+#@app.route("/CREATEDATABASE", methods=["GET"])
 def createdb():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
