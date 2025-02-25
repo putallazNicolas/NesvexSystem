@@ -344,9 +344,8 @@ def addArticle():
         cantidad = request.form.get("cantidad")
         color = request.form.get("color")
         costo = request.form.get("costo")
-        valor = request.form.get("valor")
 
-        if not descripcion or not cantidad or not costo or not valor:
+        if not descripcion or not cantidad or not costo:
             return render_template("addarticles.html", alert = True, alertMsg = "Por favor introduce todos los campos obligatorios"), 400
         
         connection = mysql.connector.connect(**db_config)
@@ -355,11 +354,11 @@ def addArticle():
 
         sql = """
             INSERT INTO articulos (
-                descripcion, cantidad, color, costo, valor
+                descripcion, cantidad, color, costo
             )
-            VALUES (%s, %s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s);
         """
-        cursor.execute(sql, (descripcion, cantidad, color, costo, valor))
+        cursor.execute(sql, (descripcion, cantidad, color, costo))
         connection.commit()
 
         cursor.close()
@@ -416,17 +415,16 @@ def editArticle(id):
         cantidad = request.form.get("cantidad")
         color = request.form.get("color")
         costo = request.form.get("costo")
-        valor = request.form.get("valor")
 
-        if not descripcion or not cantidad or not costo or not valor:
-            return render_template("editarticles.html", articulo={"id": id, "descripcion": descripcion, "cantidad": cantidad, "color": color, "costo": costo, "valor": valor}, alert=True, alertMsg="Por favor introduce todos los campos obligatorios"), 400
+        if not descripcion or not cantidad or not costo:
+            return render_template("editarticles.html", articulo={"id": id, "descripcion": descripcion, "cantidad": cantidad, "color": color, "costo": costo}, alert=True, alertMsg="Por favor introduce todos los campos obligatorios"), 400
 
         sql = """
             UPDATE articulos
-            SET descripcion = %s, cantidad = %s, color = %s, costo = %s, valor = %s
+            SET descripcion = %s, cantidad = %s, color = %s, costo = %s
             WHERE id = %s
         """
-        cursor.execute(sql, (descripcion, cantidad, color, costo, valor, id))
+        cursor.execute(sql, (descripcion, cantidad, color, costo, id))
         connection.commit()
 
         cursor.close()
@@ -462,6 +460,9 @@ def orders():
     pedidos = cursor.fetchall()
 
     for pedido in pedidos:
+        pedido["fecha_de_inicio"] = pedido["fecha_de_inicio"].strftime('%d/%m/%Y')
+        pedido["fecha_de_entrega"] = pedido["fecha_de_entrega"].strftime('%d/%m/%Y')
+
         cursor.execute(sql_articulos_vendidos, (pedido["id"], ))
         pedido["articulos_vendidos"] = cursor.fetchall()
 
@@ -471,9 +472,9 @@ def orders():
         pedido["cliente"] = cursor.fetchone()
 
         for articulo in pedido["articulos_vendidos"]:
-            cursor.execute(sql_articulos, (articulo["id"], ))
+            cursor.execute(sql_articulos, (articulo["articulo_id"], ))
             articulo["info"] = cursor.fetchone()
-            pedido["costo"] += articulo["info"]["costo"]
+            pedido["costo"] += articulo["info"]["costo"] * articulo["cantidad"]
 
     cursor.close()
     connection.close()
@@ -528,8 +529,30 @@ def createOrder():
 
         total_costo = request.form.get('totalCostoPedido')
         total_precio = request.form.get('totalPrecioPedido')
+
+        if not cliente_id or not fecha_entrega or not articulos or not total_precio or total_precio == '0.00':
+            # GET CLIENTS AND ARTICLES
+            connection = mysql.connector.connect(**db_config)
+            cursor = connection.cursor(dictionary=True)
+
+            sql_clients = """
+            SELECT * FROM clientes;
+            """
+
+            cursor.execute(sql_clients)
+            clientes = cursor.fetchall()
+
+            sql_articles = """
+            SELECT * FROM articulos;
+            """
+
+            cursor.execute(sql_articles)
+            articulos = cursor.fetchall()
+
+            cursor.close()
+            connection.close()
+            return render_template("addorders.html", alert=True, alertMsg = "Por favor introduce todos los campos", clientes=clientes, articulos=articulos)
         
-        # GET CLIENTS AND ARTICLES
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
@@ -541,6 +564,12 @@ def createOrder():
         connection.commit()
 
         pedido_id = cursor.lastrowid
+
+        sql_cliente = """
+        UPDATE clientes SET cantidad_compras = cantidad_compras + 1 WHERE id = %s;
+        """
+
+        cursor.execute(sql_cliente, (cliente_id,))
 
         for articulo in articulos:
             sql_articulo = """
@@ -593,7 +622,7 @@ def nextState(id):
     if referrer_path == "/orders" or referrer_path == "/orders#":
         return redirect("/orders")
     else:
-        return redirect("/orders/finished")
+        return redirect(f"/orders/see/{id}")
 
 
 @app.route("/orders/edit/state/<int:id>/prev", methods=["GET"])
@@ -633,10 +662,113 @@ def prevState(id):
     if referrer_path == "/orders" or referrer_path == "/orders#":
         return redirect("/orders")
     else:
-        return redirect("/orders/finished")
+        return redirect(f"/orders/see/{id}")
     
 
+@app.route("/orders/edit/info/<int:order_id>", methods=["GET", "POST"])
+@login_required
+def editOrderInfo(order_id):    
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_pedidos = """
+    SELECT * FROM pedidos WHERE id = %s;
+    """
+
+    sql_clientes = """
+    SELECT * FROM clientes;
+    """
+
+    cursor.execute(sql_pedidos, (order_id,))
+    pedido = cursor.fetchone()
+
+    cursor.execute(sql_clientes)
+    clientes = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+    if request.method == "GET":
+        return render_template("editorder.html", order=pedido, clientes=clientes)
+    elif (request.method == "POST"):
+        cliente_id = request.form.get("cliente")
+        fecha_de_entrega = request.form.get("fechaEntrega")
+        valor = request.form.get("totalPrecioPedido")
+
+        if not cliente_id or not fecha_de_entrega or not valor or valor == 0:
+            return render_template("editorder.html", order=pedido, clientes=clientes, alert=True, alertMsg="Por favor introduce todos los campos")
+
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        sql = """
+        UPDATE pedidos
+        SET cliente_id = %s, valor = %s, fecha_de_entrega = %s
+        WHERE id = %s;
+        """
+
+        cursor.execute(sql, (cliente_id, valor, fecha_de_entrega, order_id))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/orders")
+
+
+@app.route("/orders/see/<int:order_id>", methods=["GET"])
+@login_required
+def seeOrder(order_id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_pedidos = """
+    SELECT * FROM pedidos WHERE id = %s;
+    """
+
+    sql_clientes = """
+    SELECT * FROM clientes WHERE id = %s;
+    """
+
+    sql_articulos = """
+    SELECT 
+        av.pedido_id,
+        a.id AS id_articulo,
+        a.descripcion,
+        a.color,
+        a.costo,
+        av.cantidad AS cantidad_vendida
+    FROM articulos_vendidos av
+    JOIN articulos a ON av.articulo_id = a.id
+    WHERE av.pedido_id = %s;
+    """
+
+    cursor.execute(sql_pedidos, (order_id,))
+    pedido = cursor.fetchone()
+
+    cursor.execute(sql_clientes, (pedido["cliente_id"],))
+    cliente = cursor.fetchone()
+
+    cursor.execute(sql_articulos, (pedido["id"],))
+    articulos = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    pedido["fecha_de_inicio"] = pedido["fecha_de_inicio"].strftime('%d/%m/%Y')
+    pedido["fecha_de_entrega"] = pedido["fecha_de_entrega"].strftime('%d/%m/%Y')
+
+    pedido["costo"] = 0
+
+    for articulo in articulos:
+        pedido["costo"] += articulo["costo"] * articulo["cantidad_vendida"]
+
+    return render_template("order.html", pedido=pedido, cliente=cliente, articulos = articulos)
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    #app.run(debug=True)
     #app.run(host='0.0.0.0', port=5000, debug=True) # para celular
+    #los dos siguientes son para deployment
+    port = int(os.environ.get('PORT', 5000))  # Usa el puerto de Render o el 5000 por defecto
+    app.run(host='0.0.0.0', port=port)
 

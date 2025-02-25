@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Ver Pedido
+{% endblock %}
+
+{% block main %}
+<h1>Pedido</h1>
+<hr>
+
+<div class="card text-center mx-auto mb-3" style="max-width: 500px;">
+    {% if pedido["estado"] == "Pendiente de Seña" %}
+    <div class="alert alert-secondary" role="alert">
+        Pedido pendiente de seña - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
+    </div>
+    {% elif pedido["estado"] == "En proceso" %}
+    <div class="alert alert-warning" role="alert">
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido en proceso - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
+    </div>
+    {% elif pedido["estado"] == "En entrega" %}
+    <div class="alert alert-info" role="alert">
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido en entrega - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
+    </div>
+    {% elif pedido["estado"] == "Entregado" %}
+    <div class="alert alert-success" role="alert">
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido entregado - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Cancelar</a>
+    </div>
+    {% elif pedido["estado"] == "Cancelado" %}
+    <div class="alert alert-danger" role="alert">
+        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido cancelado
+    </div>
+    {% endif %}
+
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="">
+                <div class="card-body">
+                    <h4>Información del Pedido</h4>
+                    <div class="card-text"><strong>Inicio:</strong> {{ pedido["fecha_de_inicio"] }}</div>
+                    <div class="card-text"><strong>Entrega Estimada:</strong> {{ pedido["fecha_de_entrega"] }}</div>
+                    <div class="card-text"><strong>Costo Total:</strong> ${{ pedido["costo"] }}</div>
+                    <div class="card-text"><strong>Valor:</strong> ${{ pedido["valor"] }}</div>
+                    <a href="/orders/edit/info/{{ pedido['id'] }}" class="btn btn-primary mt-3">Editar Pedido</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="card text-center mx-auto mb-3 col-auto" style="max-width: 500px;">
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="">
+                <div class="card-body">
+                    <h4>Información del Cliente</h4>
+                    <div class="card-text"><strong>Cliente:</strong> {{ cliente["nombre"] }}</div>
+                    <div class="card-text">Realizó {{ cliente["cantidad_compras"] }} compras</div>
+                    {% if cliente["notas"] %}"{{ cliente["notas"] }}"{% endif %}
+                    <hr>
+                    <h5>Información de Contacto</h5>
+                    <div class="card-text"><strong>Teléfono:</strong> {{ cliente["telefono"] }}</div>
+                    <div class="card-text"><strong>Correo:</strong> {{ cliente["mail"] }}</div>
+                    <div class="card-text"><strong>Instagram:</strong> {{ cliente["instagram"] }}</div>
+                    <div class="card-text"><strong>Facebook:</strong> {{ cliente["facebook"] }}</div>
+                    <hr>
+                    <h5>Información de Facturación</h5>
+                    <div class="card-text"><strong>Dirección:</strong> {{ cliente["direccion"] }}</div>
+                    <div class="card-text"><strong>Razón Social:</strong> {{ cliente["razon_social"] }}</div>
+                    <div class="card-text"><strong>Condición ante el IVA:</strong> {{ cliente["condicion_iva"] }}</div>
+                    <div class="card-text"><strong>CUIT:</strong> {{ cliente["cuit"] }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card text-center mx-auto mb-3 col-auto" style="max-width: 500px;">
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="">
+                <div class="card-body">
+                    <h4>Articulos</h4>
+                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
+                    {% for articulo in articulos %}
+                    <div class="card-text"><strong>Articulo:</strong> {{ articulo["descripcion"] }}</div>
+                    <div class="card-text"><strong>Cantidad:</strong> {{ articulo["cantidad_vendida"] }}</div>
+                    <div class="card-text"><strong>Costo Unitario:</strong> {{ articulo["costo"] }}</div>
+                    <div class="card-text"><strong>Costo Total:</strong> ${{ articulo["costo"] * articulo["cantidad_vendida"] }}</div>
+                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
+                    {% endfor %}
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

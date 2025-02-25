@@ -34,9 +34,8 @@
               <select class="form-control articulo-select" name="articulos[0][id]">
                 {% for articulo in articulos %}
                   <option value="{{ articulo.id }}"
-                    data-costo="{{ articulo.costo }}"
-                    data-valor="{{ articulo.valor }}">
-                    {{ articulo.descripcion }} - Costo: {{ articulo.costo }} - Precio: {{ articulo.valor }}
+                    data-costo="{{ articulo.costo }}">
+                    {{ articulo.descripcion }} - Costo: {{ articulo.costo }}
                   </option>
                 {% endfor %}
               </select>

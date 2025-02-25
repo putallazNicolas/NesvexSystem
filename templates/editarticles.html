@@ -26,10 +26,6 @@
                     <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="costo" id="costo" placeholder="Costo*" type="number" value="{{ articulo.costo }}">
                     <label for="costo">Costo*</label>
                 </div>
-                <div class="form-floating mb-3">
-                    <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="valor" id="valor" placeholder="Valor*" type="number" value="{{ articulo.valor }}">
-                    <label for="valor">Valor*</label>
-                </div>
             </div>
         </div>
         <button class="btn btn-outline-dark" type="submit">Guardar Cambios</button>

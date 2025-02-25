@@ -38,27 +38,12 @@ Pedidos
         <div class="row justify-content-center">
             <div class="">
                 <div class="card-body">
-                    <h4 class="card-title">Información</h4>
-                    <div class="card-text"><strong>Cliente:</strong> {{ pedido["cliente"]["nombre"] }}</div>
+                    <h4>{{ pedido["cliente"]["nombre"] }}</h4>
                     <div class="card-text"><strong>Inicio:</strong> {{ pedido["fecha_de_inicio"] }}</div>
                     <div class="card-text"><strong>Entrega Estimada:</strong> {{ pedido["fecha_de_entrega"] }}</div>
-                    <div class="card-text"><strong>Costo Total:</strong> {{ pedido["costo"] }}</div>
-                    <div class="card-text"><strong>Valor:</strong> {{ pedido["valor"] }}</div>
-                    <a href="/orders/edit/{{ pedido['id'] }}" class="btn btn-primary mt-3">Editar Pedido</a>
-                </div>
-            </div>
-            <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
-            <div class="">
-                <div class="card-body">
-                    <h4 class="card-title">Articulos</h4>
-                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
-                    {% for articulo in pedido["articulos_vendidos"] %}
-                    <div class="card-text"><strong>Articulo:</strong> {{ articulo["info"]["descripcion"] }}</div>
-                    <div class="card-text"><strong>Cantidad:</strong> {{ articulo["cantidad"] }}</div>
-                    <div class="card-text"><strong>Costo Unitario:</strong> {{ articulo["info"]["costo"] }}</div>
-                    <div class="card-text"><strong>Costo Total:</strong> {{ articulo["info"]["costo"] * articulo["cantidad"] }}</div>
-                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
-                    {% endfor %}
+                    <div class="card-text"><strong>Costo Total:</strong> ${{ pedido["costo"] }}</div>
+                    <div class="card-text"><strong>Valor:</strong> ${{ pedido["valor"] }}</div>
+                    <a href="/orders/see/{{ pedido['id'] }}" class="btn btn-primary mt-3">Ver Pedido</a>
                 </div>
             </div>
         </div>
