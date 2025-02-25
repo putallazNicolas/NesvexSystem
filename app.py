@@ -36,7 +36,8 @@ db_config = {
     'host': host,
     'user': user,
     'password': password,
-    'database': database
+    'database': database,
+    'charset': 'utf8mb4'
 }
 
 email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'
