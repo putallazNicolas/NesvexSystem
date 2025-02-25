@@ -775,7 +775,6 @@ def seeOrder(order_id):
 
 
 @app.route("/CREATEDATABASE", methods=["GET"])
-@login_required
 def createdb():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
