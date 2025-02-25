@@ -780,33 +780,14 @@ def createdb():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
 
-    # Crear tabla 'articulos'
+    # Crear tabla 'usuarios'
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS articulos (
+        CREATE TABLE IF NOT EXISTS usuarios (
             id INT NOT NULL AUTO_INCREMENT,
-            descripcion VARCHAR(255) NOT NULL,
-            cantidad INT NOT NULL DEFAULT 0,
-            color VARCHAR(50) DEFAULT NULL,
-            costo DECIMAL(10,2) NOT NULL,
-            valor DECIMAL(10,2) NOT NULL,
-            PRIMARY KEY (id)
-        );
-    """)
-
-    # Crear tabla 'articulos_vendidos'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS articulos_vendidos (
-            id INT NOT NULL AUTO_INCREMENT,
-            articulo_id INT NOT NULL,
-            pedido_id INT NOT NULL,
-            cantidad INT NOT NULL,
-            costo_total DECIMAL(10,2) NOT NULL,
+            username VARCHAR(100) DEFAULT NULL,
+            hash VARCHAR(255) DEFAULT NULL,
             PRIMARY KEY (id),
-            KEY articulo_id (articulo_id),
-            KEY pedido_id (pedido_id),
-            CONSTRAINT articulos_vendidos_ibfk_1 FOREIGN KEY (articulo_id) REFERENCES articulos (id) ON DELETE CASCADE,
-            CONSTRAINT articulos_vendidos_ibfk_2 FOREIGN KEY (pedido_id) REFERENCES pedidos (id) ON DELETE CASCADE,
-            CONSTRAINT articulos_vendidos_chk_1 CHECK (cantidad > 0)
+            UNIQUE KEY unique_username (username)
         );
     """)
 
@@ -829,6 +810,19 @@ def createdb():
         );
     """)
 
+    # Crear tabla 'articulos'
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS articulos (
+            id INT NOT NULL AUTO_INCREMENT,
+            descripcion VARCHAR(255) NOT NULL,
+            cantidad INT NOT NULL DEFAULT 0,
+            color VARCHAR(50) DEFAULT NULL,
+            costo DECIMAL(10,2) NOT NULL,
+            valor DECIMAL(10,2) NOT NULL,
+            PRIMARY KEY (id)
+        );
+    """)
+
     # Crear tabla 'pedidos'
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS pedidos (
@@ -847,14 +841,20 @@ def createdb():
         );
     """)
 
-    # Crear tabla 'usuarios'
+    # Crear tabla 'articulos_vendidos'
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
+        CREATE TABLE IF NOT EXISTS articulos_vendidos (
             id INT NOT NULL AUTO_INCREMENT,
-            username VARCHAR(100) DEFAULT NULL,
-            hash VARCHAR(255) DEFAULT NULL,
+            articulo_id INT NOT NULL,
+            pedido_id INT NOT NULL,
+            cantidad INT NOT NULL,
+            costo_total DECIMAL(10,2) NOT NULL,
             PRIMARY KEY (id),
-            UNIQUE KEY unique_username (username)
+            KEY articulo_id (articulo_id),
+            KEY pedido_id (pedido_id),
+            CONSTRAINT articulos_vendidos_ibfk_1 FOREIGN KEY (articulo_id) REFERENCES articulos (id) ON DELETE CASCADE,
+            CONSTRAINT articulos_vendidos_ibfk_2 FOREIGN KEY (pedido_id) REFERENCES pedidos (id) ON DELETE CASCADE,
+            CONSTRAINT articulos_vendidos_chk_1 CHECK (cantidad > 0)
         );
     """)
 
