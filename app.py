@@ -361,12 +361,12 @@ def addArticle():
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-
+        # valor is 0 because of no need of this column
         sql = """
             INSERT INTO articulos (
-                descripcion, cantidad, color, costo
+                descripcion, cantidad, color, costo, valor
             )
-            VALUES (%s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s, 0);
         """
         cursor.execute(sql, (descripcion, cantidad, color, costo))
         connection.commit()
