@@ -41,8 +41,8 @@ Pedidos
                     <h4>{{ pedido["cliente"]["nombre"] }}</h4>
                     <div class="card-text"><strong>Inicio:</strong> {{ pedido["fecha_de_inicio"] }}</div>
                     <div class="card-text"><strong>Entrega Estimada:</strong> {{ pedido["fecha_de_entrega"] }}</div>
-                    <div class="card-text"><strong>Costo Total:</strong> ${{ pedido["costo"] }}</div>
-                    <div class="card-text"><strong>Valor:</strong> ${{ pedido["valor"] }}</div>
+                    <div class="card-text"><strong>Costo Total:</strong> ${{ "{:,.2f}".format(pedido["costo"]) }}</div>
+                    <div class="card-text"><strong>Valor:</strong> ${{ "{:,.2f}".format(pedido["valor"]) }}</div>
                     <a href="/orders/see/{{ pedido['id'] }}" class="btn btn-primary mt-3">Ver Pedido</a>
                 </div>
             </div>

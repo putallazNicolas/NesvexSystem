@@ -589,6 +589,15 @@ def createOrder():
             cursor.execute(sql_articulo, (articulo["id"], pedido_id, articulo["cantidad"], articulo["costo_total"]))
             connection.commit()
 
+            sql_stock = """
+            UPDATE articulos
+            SET cantidad = cantidad - %s
+            WHERE id = %s;
+            """
+
+            cursor.execute(sql_stock, (articulo["cantidad"], articulo["id"]))
+            connection.commit()
+            
         cursor.close()
         connection.close()
 
@@ -775,7 +784,7 @@ def seeOrder(order_id):
     return render_template("order.html", pedido=pedido, cliente=cliente, articulos = articulos)
 
 
-#@app.route("/CREATEDATABASE", methods=["GET"])
+#@app.route("/CREATEDATABASE", methods=["GET"]) # Unable this route after creating the database
 def createdb():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
@@ -863,13 +872,56 @@ def createdb():
     connection.close()
 
     return redirect("/")
+    
 
+@app.route("/orders/delete/<int:order_id>", methods=["GET"])
+@login_required
+def deleteOrder(order_id):
+    # check that order with that ID exists
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_order = """
+    SELECT id, cliente_id FROM pedidos WHERE id = %s;
+    """
+
+    cursor.execute(sql_order, (order_id,))
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        connection.close()
+
+        return "No existe un pedido con esa ID", 404
+    
+    # delete order, as it exists
+
+    sql_delete = """
+    DELETE FROM pedidos WHERE id = %s;
+    """
+
+    cursor.execute(sql_delete, (order_id, ))
+    connection.commit()
+
+    sql_decrement_orders = """
+    UPDATE clientes
+    SET cantidad_compras = cantidad_compras - 1
+    WHERE id = %s;
+    """
+
+    cursor.execute(sql_decrement_orders, (order["cliente_id"],))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/orders"), 200
 
 
 if __name__ == '__main__':
-    #app.run(debug=True)
+    app.run(debug=True)
     #app.run(host='0.0.0.0', port=5000, debug=True) # para celular
     #los dos siguientes son para deployment
-    port = int(os.environ.get('PORT', 5000))  # Usa el puerto de Render o el 5000 por defecto
-    app.run(host='0.0.0.0', port=port)
+    #port = int(os.environ.get('PORT', 5000))  # Usa el puerto de Render o el 5000 por defecto
+    #app.run(host='0.0.0.0', port=port)
 
