@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Editar Pedido
+{% endblock %}
+
+{% block main %}
+  <div class="container">
+    <h1 class="mb-4">Editar Pedido</h1>
+    <form method="POST" action="/orders/{{ order_id }}/articles/add" style="max-width: 700px;">
+      <!-- Selección de cliente -->
+      <div class="form-group">
+        <label for="articulo">Order</label>
+        <select class="form-control" id="articulo" name="articulo">
+            {% if articulos %}
+            {% for articulo in articulos %}
+              <option value="{{ articulo.id }}">{{ articulo.descripcion }}</option>
+            {% endfor %}
+            {% else %}
+                <option>No hay artículos disponibles</option>
+            {% endif %}
+        
+        </select>
+      </div>
+      <!-- Totales del Pedido -->
+      <div class="form-group">
+        <label for="totalPrecioPedido">Cantidad</label>
+        <input type="text" class="form-control" id="cantidad" name="cantidad">
+      </div>
+      <button type="submit" class="btn btn-success">Agregar articulo</button>
+    </form>
+  </div>
+{% endblock %}

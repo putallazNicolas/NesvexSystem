@@ -958,7 +958,99 @@ def deleteArticleFromOrder(article_id):
     cursor.close()
     connection.close()
 
-    return redirect(f"/orders/see/{articulo["pedido_id"]}") #ACTUALIZAR
+    return redirect(f"/orders/see/{articulo["pedido_id"]}")
+
+
+@app.route("/orders/<int:order_id>/articles/add", methods=["GET", "POST"])
+@login_required
+def addArticleToOrder(order_id):
+    if request.method == "GET":
+        # check if order exists
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        sql_order = """
+        SELECT id FROM pedidos WHERE id = %s;
+        """
+
+        cursor.execute(sql_order, (order_id,))
+        pedido = cursor.fetchone()
+
+        if not pedido:
+            cursor.close()
+            connection.close()
+
+            return "no existe un pedido con esa ID"
+        
+        sql_articulos = """
+        SELECT * FROM articulos;
+        """
+
+        cursor.execute(sql_articulos)
+        articulos = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+        
+        return render_template("addArticleToOrder.html", articulos=articulos, order_id=order_id), 200
+    else:
+        articulo = request.form.get("articulo")
+        cantidad = request.form.get("cantidad")
+
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        if not articulo or not cantidad:
+            sql_order = """
+            SELECT id FROM pedidos WHERE id = %s;
+            """
+
+            cursor.execute(sql_order, (order_id,))
+            pedido = cursor.fetchone()
+
+            if not pedido:
+                cursor.close()
+                connection.close()
+
+                return "no existe un pedido con esa ID"
+            
+            sql_articulos = """
+            SELECT * FROM articulos;
+            """
+
+            cursor.execute(sql_articulos)
+            articulos = cursor.fetchall()
+
+            cursor.close()
+            connection.close()
+            
+            return render_template("addArticleToOrder.html", articulos=articulos, order_id=order_id, alert=True, alertMsg="Por favor introduce todos los campos"), 400
+        
+        sql_articulo_vendido = """
+        INSERT INTO articulos_vendidos
+        (articulo_id, cantidad, pedido_id, costo_total)
+        VALUES
+        (%s, %s, %s, %s);
+        """
+
+        sql_articulo = """
+        SELECT * FROM articulos WHERE id = %s;
+        """
+
+        cursor.execute(sql_articulo, (articulo,))
+        articulo_info = cursor.fetchone()
+
+        print(type(articulo_info["costo"]))
+        print(type(cantidad))
+
+        cursor.execute(sql_articulo_vendido, (articulo, cantidad, order_id, int(cantidad) * float(articulo_info["costo"])))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect(f"/orders/see/{order_id}")
 
 
 if __name__ == '__main__':

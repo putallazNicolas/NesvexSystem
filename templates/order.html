@@ -82,9 +82,14 @@
             <div class="">
                 <div class="card-body">
                     <h4>Articulos</h4>
+                    <a href="/orders/{{ pedido['id'] }}/articles/add" class="btn btn-primary mt-3">Agregar articulo</a>
+
                     <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
                     {% for articulo in articulos %}
                     <div class="card-text"><strong>Articulo:</strong> {{ articulo["descripcion"] }}</div>
+                    {% if articulo["color"] %} 
+                    <div class="card-text"><strong>Color:</strong> {{ articulo["color"] }}</div>
+                    {% endif %}
                     <div class="card-text"><strong>Cantidad:</strong> {{ articulo["cantidad_vendida"] }}</div>
                     <div class="card-text"><strong>Costo Unitario:</strong> {{ articulo["costo"] }}</div>
                     <div class="card-text"><strong>Costo Total:</strong> ${{ articulo["costo"] * articulo["cantidad_vendida"] }}</div>

@@ -35,7 +35,7 @@
                 {% for articulo in articulos %}
                   <option value="{{ articulo.id }}"
                     data-costo="{{ articulo.costo }}">
-                    {{ articulo.descripcion }} - Costo: {{ articulo.costo }}
+                    {{ articulo.descripcion }} - Costo: {{ articulo.costo }} - Color: {{ articulo.color }}
                   </option>
                 {% endfor %}
               </select>
