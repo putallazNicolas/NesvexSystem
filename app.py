@@ -750,6 +750,7 @@ def seeOrder(order_id):
 
     sql_articulos = """
     SELECT 
+        av.id AS articulo_vendido_id,
         av.pedido_id,
         a.id AS id_articulo,
         a.descripcion,
@@ -915,7 +916,49 @@ def deleteOrder(order_id):
     cursor.close()
     connection.close()
 
-    return redirect("/orders"), 200
+    return redirect("/orders")
+
+
+@app.route("/orders/article/delete/<int:article_id>")
+@login_required
+def deleteArticleFromOrder(article_id):
+    #check if article sold exists
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    sql_articulos_vendidos = """
+    SELECT id, articulo_id, cantidad, pedido_id FROM articulos_vendidos WHERE id = %s;
+    """
+
+    cursor.execute(sql_articulos_vendidos, (article_id,))
+    articulo = cursor.fetchone()
+
+    if not articulo:
+        cursor.close()
+        connection.close()
+
+        return "no existe ese articulo en ese pedido"
+    
+    sql_delete = """
+    DELETE FROM articulos_vendidos WHERE id = %s;
+    """
+
+    cursor.execute(sql_delete, (article_id,))
+    connection.commit()
+
+    sql_update_stock = """
+    UPDATE articulos
+    SET cantidad = cantidad + %s
+    WHERE id = %s;
+    """
+
+    cursor.execute(sql_update_stock, (articulo["cantidad"], articulo["articulo_id"]))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect(f"/orders/see/{articulo["pedido_id"]}") #ACTUALIZAR
 
 
 if __name__ == '__main__':

@@ -88,6 +88,7 @@
                     <div class="card-text"><strong>Cantidad:</strong> {{ articulo["cantidad_vendida"] }}</div>
                     <div class="card-text"><strong>Costo Unitario:</strong> {{ articulo["costo"] }}</div>
                     <div class="card-text"><strong>Costo Total:</strong> ${{ articulo["costo"] * articulo["cantidad_vendida"] }}</div>
+                    <a href="/orders/article/delete/{{ articulo['articulo_vendido_id'] }}" class="btn btn-danger mt-3">Eliminar Articulo</a>
                     <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
                     {% endfor %}
                     
