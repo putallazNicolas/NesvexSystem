@@ -197,7 +197,7 @@ def clients():
 @app.route("/clients/add", methods=["GET", "POST"])
 def addClient():
     if request.method == "GET":
-        return render_template("addClients.html")
+        return render_template("addclients.html")
     else:
         nombre = request.form.get("nombre")
         telefono = request.form.get("telefono")
