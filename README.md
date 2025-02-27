@@ -1,6 +1,6 @@
-# Sistema de Gestión - Consentido Visual
+# Sistema de Gestión
 
-Sistema de gestión empresarial diseñado específicamente para Consentido Visual, que permite administrar pedidos, clientes, inventario y finanzas.
+Sistema de gestión empresarial, que permite administrar pedidos, clientes, inventario y finanzas.
 
 ## Características Principales
 
