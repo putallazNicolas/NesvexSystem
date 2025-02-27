@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Usuarios
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestión de Usuarios</h2>
+        <a href="/register" class="btn btn-primary">Nuevo Usuario</a>
+    </div>
+
+    {% if alert %}
+    <div class="alert alert-danger" role="alert">
+        {{ alertMsg }}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>
+                        <a href="/users/edit/{{ user.username }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Editar Usuario
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h2 class="mb-4">Editar Usuario: {{ username }}</h2>
+
+    {% if alert %}
+    <div class="alert alert-danger" role="alert">
+        {{ alertMsg }}
+    </div>
+    {% endif %}
+
+    <form action="/users/edit/{{ username }}" method="post">
+        <div class="mb-3">
+            <label for="current_password" class="form-label">Tu Contraseña Actual</label>
+            <input type="password" class="form-control" id="current_password" name="current_password" required>
+            <small class="form-text text-muted">Para cambiar la contraseña de otro usuario, debes verificar tu identidad.</small>
+        </div>
+        <div class="mb-3">
+            <label for="new_password" class="form-label">Nueva Contraseña para {{ username }}</label>
+            <input type="password" class="form-control" id="new_password" name="new_password" required>
+        </div>
+        <div class="mb-3">
+            <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña</label>
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="/users" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %} 

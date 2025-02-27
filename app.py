@@ -74,7 +74,7 @@ def index():
 
 
 @app.route("/register", methods=["GET", "POST"])
-#@login_required # unavailable temporally because of first user
+@login_required
 def register():
     """Register user"""
     if request.method == "POST":
@@ -119,7 +119,115 @@ def register():
 
     else:
         return render_template("register.html")
-    
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    """Editar perfil del usuario actual"""
+    if request.method == "POST":
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        if not current_password:
+            return render_template("profile.html", alert=True, alertMsg="Por favor introduce tu contraseña actual"), 400
+        
+        if not new_password:
+            return render_template("profile.html", alert=True, alertMsg="Por favor introduce la nueva contraseña"), 400
+        
+        if not confirm_password:
+            return render_template("profile.html", alert=True, alertMsg="Por favor confirma la nueva contraseña"), 400
+
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # Verificar contraseña actual
+        cursor.execute("SELECT hash FROM usuarios WHERE username = %s", (session["user_id"],))
+        user = cursor.fetchone()
+
+        if not check_password_hash(user["hash"], current_password):
+            cursor.close()
+            connection.close()
+            return render_template("profile.html", alert=True, alertMsg="La contraseña actual es incorrecta"), 400
+
+        if new_password != confirm_password:
+            cursor.close()
+            connection.close()
+            return render_template("profile.html", alert=True, alertMsg="Las contraseñas nuevas no coinciden"), 400
+
+        # Actualizar contraseña
+        new_hash = generate_password_hash(new_password)
+        cursor.execute("UPDATE usuarios SET hash = %s WHERE username = %s", (new_hash, session["user_id"]))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/")
+    else:
+        return render_template("profile.html")
+
+@app.route("/users", methods=["GET"])
+@login_required
+def users():
+    """Ver lista de usuarios"""
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute("SELECT id, username FROM usuarios")
+    users = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return render_template("users.html", users=users)
+
+@app.route("/users/edit/<username>", methods=["GET", "POST"])
+@login_required
+def edit_user(username):
+    """Editar usuario específico"""
+    if request.method == "POST":
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        if not current_password:
+            return render_template("edit_user.html", username=username, alert=True, alertMsg="Por favor introduce tu contraseña actual"), 400
+        
+        if not new_password:
+            return render_template("edit_user.html", username=username, alert=True, alertMsg="Por favor introduce la nueva contraseña"), 400
+        
+        if not confirm_password:
+            return render_template("edit_user.html", username=username, alert=True, alertMsg="Por favor confirma la nueva contraseña"), 400
+
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # Verificar la contraseña actual del usuario que está haciendo el cambio
+        cursor.execute("SELECT hash FROM usuarios WHERE id = %s", (session["user_id"],))
+        current_user = cursor.fetchone()
+
+        if not check_password_hash(current_user["hash"], current_password):
+            cursor.close()
+            connection.close()
+            return render_template("edit_user.html", username=username, alert=True, alertMsg="Tu contraseña actual es incorrecta"), 400
+
+        if new_password != confirm_password:
+            cursor.close()
+            connection.close()
+            return render_template("edit_user.html", username=username, alert=True, alertMsg="Las contraseñas no coinciden"), 400
+
+        # Actualizar contraseña del usuario objetivo
+        new_hash = generate_password_hash(new_password)
+        cursor.execute("UPDATE usuarios SET hash = %s WHERE username = %s", (new_hash, username))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/users")
+    else:
+        return render_template("edit_user.html", username=username)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
