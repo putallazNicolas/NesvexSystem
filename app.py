@@ -914,94 +914,126 @@ def seeOrder(order_id):
     return render_template("order.html", pedido=pedido, cliente=cliente, articulos = articulos)
 
 
-#@app.route("/CREATEDATABASE", methods=["GET"]) # Unable this route after creating the database
+@app.route("/CREATEDATABASE", methods=["GET"])
 def createdb():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
 
-    # Crear tabla 'usuarios'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id INT NOT NULL AUTO_INCREMENT,
-            username VARCHAR(100) DEFAULT NULL,
-            hash VARCHAR(255) DEFAULT NULL,
-            PRIMARY KEY (id),
-            UNIQUE KEY unique_username (username)
-        );
-    """)
+    # Verificar si las tablas ya existen
+    cursor.execute("SHOW TABLES")
+    existing_tables = [table[f'Tables_in_{database}'] for table in cursor.fetchall()]
 
-    # Crear tabla 'clientes'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS clientes (
-            id INT NOT NULL AUTO_INCREMENT,
-            nombre VARCHAR(255) NOT NULL,
-            telefono VARCHAR(20) DEFAULT NULL,
-            direccion VARCHAR(255) DEFAULT NULL,
-            mail VARCHAR(255) DEFAULT NULL,
-            instagram VARCHAR(255) DEFAULT NULL,
-            facebook VARCHAR(255) DEFAULT NULL,
-            cuit VARCHAR(20) NOT NULL,
-            razon_social VARCHAR(255) DEFAULT NULL,
-            condicion_iva VARCHAR(255) DEFAULT NULL,
-            cantidad_compras INT DEFAULT 0,
-            notas TEXT,
-            PRIMARY KEY (id)
-        );
-    """)
+    if 'usuarios' not in existing_tables:
+        # Crear tabla 'usuarios'
+        cursor.execute("""
+            CREATE TABLE usuarios (
+                id INT NOT NULL AUTO_INCREMENT,
+                username VARCHAR(100) DEFAULT NULL,
+                hash VARCHAR(255) DEFAULT NULL,
+                PRIMARY KEY (id),
+                UNIQUE KEY unique_username (username)
+            );
+        """)
+        print("Tabla 'usuarios' creada exitosamente")
 
-    # Crear tabla 'articulos'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS articulos (
-            id INT NOT NULL AUTO_INCREMENT,
-            descripcion VARCHAR(255) NOT NULL,
-            cantidad INT NOT NULL DEFAULT 0,
-            color VARCHAR(50) DEFAULT NULL,
-            costo DECIMAL(10,2) NOT NULL,
-            valor DECIMAL(10,2) NOT NULL,
-            PRIMARY KEY (id)
-        );
-    """)
+    if 'clientes' not in existing_tables:
+        # Crear tabla 'clientes'
+        cursor.execute("""
+            CREATE TABLE clientes (
+                id INT NOT NULL AUTO_INCREMENT,
+                nombre VARCHAR(255) NOT NULL,
+                telefono VARCHAR(20) DEFAULT NULL,
+                direccion VARCHAR(255) DEFAULT NULL,
+                mail VARCHAR(255) DEFAULT NULL,
+                instagram VARCHAR(255) DEFAULT NULL,
+                facebook VARCHAR(255) DEFAULT NULL,
+                cuit VARCHAR(20) NOT NULL,
+                razon_social VARCHAR(255) DEFAULT NULL,
+                condicion_iva VARCHAR(255) DEFAULT NULL,
+                cantidad_compras INT DEFAULT 0,
+                notas TEXT,
+                PRIMARY KEY (id)
+            );
+        """)
+        print("Tabla 'clientes' creada exitosamente")
 
-    # Crear tabla 'pedidos'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pedidos (
-            id INT NOT NULL AUTO_INCREMENT,
-            cliente_id INT NOT NULL,
-            estado ENUM('Pendiente de Seña', 'En proceso', 'En entrega', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Pendiente de Seña',
-            costo DECIMAL(10,2) NOT NULL,
-            valor DECIMAL(10,2) NOT NULL,
-            fecha_de_inicio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            fecha_de_entrega DATETIME DEFAULT NULL,
-            PRIMARY KEY (id),
-            KEY cliente_id (cliente_id),
-            CONSTRAINT pedidos_ibfk_1 FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
-            CONSTRAINT pedidos_chk_1 CHECK (costo >= 0),
-            CONSTRAINT pedidos_chk_2 CHECK (valor >= 0)
-        );
-    """)
+    if 'articulos' not in existing_tables:
+        # Crear tabla 'articulos'
+        cursor.execute("""
+            CREATE TABLE articulos (
+                id INT NOT NULL AUTO_INCREMENT,
+                descripcion VARCHAR(255) NOT NULL,
+                cantidad INT NOT NULL DEFAULT 0,
+                color VARCHAR(50) DEFAULT NULL,
+                costo DECIMAL(10,2) NOT NULL,
+                valor DECIMAL(10,2) NOT NULL,
+                PRIMARY KEY (id)
+            );
+        """)
+        print("Tabla 'articulos' creada exitosamente")
 
-    # Crear tabla 'articulos_vendidos'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS articulos_vendidos (
-            id INT NOT NULL AUTO_INCREMENT,
-            articulo_id INT NOT NULL,
-            pedido_id INT NOT NULL,
-            cantidad INT NOT NULL,
-            costo_total DECIMAL(10,2) NOT NULL,
-            PRIMARY KEY (id),
-            KEY articulo_id (articulo_id),
-            KEY pedido_id (pedido_id),
-            CONSTRAINT articulos_vendidos_ibfk_1 FOREIGN KEY (articulo_id) REFERENCES articulos (id) ON DELETE CASCADE,
-            CONSTRAINT articulos_vendidos_ibfk_2 FOREIGN KEY (pedido_id) REFERENCES pedidos (id) ON DELETE CASCADE,
-            CONSTRAINT articulos_vendidos_chk_1 CHECK (cantidad > 0)
-        );
-    """)
+    if 'pedidos' not in existing_tables:
+        # Crear tabla 'pedidos'
+        cursor.execute("""
+            CREATE TABLE pedidos (
+                id INT NOT NULL AUTO_INCREMENT,
+                cliente_id INT NOT NULL,
+                estado ENUM('Pendiente de Seña', 'En proceso', 'En entrega', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Pendiente de Seña',
+                costo DECIMAL(10,2) NOT NULL,
+                valor DECIMAL(10,2) NOT NULL,
+                fecha_de_inicio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                fecha_de_entrega DATETIME DEFAULT NULL,
+                PRIMARY KEY (id),
+                KEY cliente_id (cliente_id),
+                CONSTRAINT pedidos_ibfk_1 FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
+                CONSTRAINT pedidos_chk_1 CHECK (costo >= 0),
+                CONSTRAINT pedidos_chk_2 CHECK (valor >= 0)
+            );
+        """)
+        print("Tabla 'pedidos' creada exitosamente")
+
+    if 'articulos_vendidos' not in existing_tables:
+        # Crear tabla 'articulos_vendidos'
+        cursor.execute("""
+            CREATE TABLE articulos_vendidos (
+                id INT NOT NULL AUTO_INCREMENT,
+                articulo_id INT NOT NULL,
+                pedido_id INT NOT NULL,
+                cantidad INT NOT NULL,
+                costo_total DECIMAL(10,2) NOT NULL,
+                PRIMARY KEY (id),
+                KEY articulo_id (articulo_id),
+                KEY pedido_id (pedido_id),
+                CONSTRAINT articulos_vendidos_ibfk_1 FOREIGN KEY (articulo_id) REFERENCES articulos (id) ON DELETE CASCADE,
+                CONSTRAINT articulos_vendidos_ibfk_2 FOREIGN KEY (pedido_id) REFERENCES pedidos (id) ON DELETE CASCADE,
+                CONSTRAINT articulos_vendidos_chk_1 CHECK (cantidad > 0)
+            );
+        """)
+        print("Tabla 'articulos_vendidos' creada exitosamente")
+
+    if 'movimientos' not in existing_tables:
+        # Crear tabla 'movimientos'
+        cursor.execute("""
+            CREATE TABLE movimientos (
+                id INT NOT NULL AUTO_INCREMENT,
+                descripcion VARCHAR(255) NOT NULL,
+                movimiento ENUM('ingreso', 'egreso') NOT NULL,
+                id_pedido INT DEFAULT NULL,
+                fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                cantidad_dinero DECIMAL(10,2) NOT NULL,
+                PRIMARY KEY (id),
+                KEY id_pedido (id_pedido),
+                CONSTRAINT movimientos_ibfk_1 FOREIGN KEY (id_pedido) REFERENCES pedidos (id) ON DELETE SET NULL,
+                CONSTRAINT movimientos_chk_1 CHECK (cantidad_dinero > 0)
+            );
+        """)
+        print("Tabla 'movimientos' creada exitosamente")
 
     connection.commit()
     cursor.close()
     connection.close()
 
-    return redirect("/")
+    return "Base de datos creada exitosamente", 200
     
 
 @app.route("/orders/delete/<int:order_id>", methods=["GET"])
