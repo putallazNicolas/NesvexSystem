@@ -1,5 +1,223 @@
 {% extends "layout.html" %}
 
+{% block title %}
+    Inicio
+{% endblock %}
+
 {% block main %}
-<h1>Hello world</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Panel de Control</h1>
+
+    <!-- Resumen Financiero -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Ingresos Totales</h5>
+                    <h3 class="card-text">+${{ "{:,.2f}".format(total_ingresos) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Egresos Totales</h5>
+                    <h3 class="card-text">-${{ "{:,.2f}".format(total_egresos) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card {% if balance >= 0 %}bg-success{% else %}bg-danger{% endif %} text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Balance Total</h5>
+                    <h3 class="card-text">{% if balance >= 0 %}+{% endif %}${{ "{:,.2f}".format(balance) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Pedidos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Estado de Pedidos</h5>
+                    <div class="row text-center">
+                        <div class="col">
+                            <h4>{{ stats_pedidos.total_pedidos }}</h4>
+                            <p>Total</p>
+                        </div>
+                        <div class="col">
+                            <h4>{{ stats_pedidos.pendiente_sena }}</h4>
+                            <p>Pendientes</p>
+                        </div>
+                        <div class="col">
+                            <h4>{{ stats_pedidos.en_proceso }}</h4>
+                            <p>En Proceso</p>
+                        </div>
+                        <div class="col">
+                            <h4>{{ stats_pedidos.en_entrega }}</h4>
+                            <p>En Entrega</p>
+                        </div>
+                        <div class="col">
+                            <h4>{{ stats_pedidos.entregados }}</h4>
+                            <p>Entregados</p>
+                        </div>
+                        <div class="col">
+                            <h4>{{ stats_pedidos.cancelados }}</h4>
+                            <p>Cancelados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Últimos Movimientos -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Últimos Movimientos</h5>
+                        <a href="/movements" class="btn btn-primary btn-sm">Ver Todos</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movimiento in ultimos_movimientos %}
+                                <tr>
+                                    <td>{{ movimiento.fecha.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ movimiento.descripcion }}</td>
+                                    <td class="{% if movimiento.movimiento == 'ingreso' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if movimiento.movimiento == 'ingreso' %}+{% else %}-{% endif %}
+                                        ${{ "{:,.2f}".format(movimiento.cantidad_dinero) }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pedidos Pendientes -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Pedidos Pendientes</h5>
+                        <a href="/orders" class="btn btn-primary btn-sm">Ver Todos</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Estado</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pedido in pedidos_pendientes %}
+                                <tr>
+                                    <td>
+                                        <a href="/orders/see/{{ pedido.id }}">
+                                            {{ pedido.cliente_nombre }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if pedido.estado == 'Pendiente de Seña' %}bg-warning
+                                                         {% elif pedido.estado == 'En proceso' %}bg-info
+                                                         {% elif pedido.estado == 'En entrega' %}bg-primary{% endif %}">
+                                            {{ pedido.estado }}
+                                        </span>
+                                    </td>
+                                    <td>${{ "{:,.2f}".format(pedido.valor) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Stock Bajo -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Artículos con Stock Bajo</h5>
+                        <a href="/articles" class="btn btn-primary btn-sm">Ver Todos</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Artículo</th>
+                                    <th>Stock</th>
+                                    <th>Costo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for articulo in stock_bajo %}
+                                <tr>
+                                    <td>{{ articulo.descripcion }}</td>
+                                    <td class="{% if articulo.cantidad <= 2 %}text-danger{% elif articulo.cantidad <= 5 %}text-warning{% endif %}">
+                                        {{ articulo.cantidad }}
+                                    </td>
+                                    <td>${{ "{:,.2f}".format(articulo.costo) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Clientes -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Mejores Clientes</h5>
+                        <a href="/clients" class="btn btn-primary btn-sm">Ver Todos</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Pedidos</th>
+                                    <th>Total Gastado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cliente in top_clientes %}
+                                <tr>
+                                    <td>{{ cliente.nombre }}</td>
+                                    <td>{{ cliente.total_pedidos }}</td>
+                                    <td>${{ "{:,.2f}".format(cliente.total_gastado) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

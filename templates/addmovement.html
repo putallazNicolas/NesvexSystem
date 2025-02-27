@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Agregar Movimiento
+{% endblock %}
+
+{% block main %}
+    <div class="container mt-4">
+        <h2>Agregar Movimiento de Dinero</h2>
+
+        {% if alert %}
+        <div class="alert alert-danger" role="alert">
+            {{ alertMsg }}
+        </div>
+        {% endif %}
+
+        <form action="/movements/add" method="post" class="mt-4">
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <input type="text" class="form-control" id="descripcion" name="descripcion" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="tipo" class="form-label">Tipo de Movimiento</label>
+                <select class="form-select" id="tipo" name="tipo" required>
+                    <option value="ingreso">Ingreso</option>
+                    <option value="egreso">Egreso</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="pedido" class="form-label">Pedido Asociado (Opcional)</label>
+                <select class="form-select" id="pedido" name="pedido">
+                    <option value="">Ninguno</option>
+                    {% for pedido in pedidos %}
+                    <option value="{{ pedido.id }}">Pedido #{{ pedido.id }} - {{ pedido.cliente_nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="monto" class="form-label">Monto</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" class="form-control" id="monto" name="monto" required min="0">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar Movimiento</button>
+            <a href="/movements" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+{% endblock %} 
