@@ -70,7 +70,94 @@ def after_request(response):
 @app.route('/')
 @login_required
 def index():
-    return redirect("/orders")
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    # Obtener últimos movimientos
+    sql_ultimos_movimientos = """
+    SELECT m.*, p.estado as pedido_estado, c.nombre as cliente_nombre 
+    FROM movimientos m
+    LEFT JOIN pedidos p ON m.id_pedido = p.id
+    LEFT JOIN clientes c ON p.cliente_id = c.id
+    ORDER BY m.fecha DESC
+    LIMIT 5;
+    """
+    cursor.execute(sql_ultimos_movimientos)
+    ultimos_movimientos = cursor.fetchall()
+
+    # Calcular balance, ingresos y egresos totales
+    sql_totales = """
+    SELECT 
+        SUM(CASE WHEN movimiento = 'ingreso' THEN cantidad_dinero ELSE 0 END) as total_ingresos,
+        SUM(CASE WHEN movimiento = 'egreso' THEN cantidad_dinero ELSE 0 END) as total_egresos
+    FROM movimientos;
+    """
+    cursor.execute(sql_totales)
+    totales = cursor.fetchone()
+    balance = float(totales["total_ingresos"] or 0) - float(totales["total_egresos"] or 0)
+
+    # Obtener pedidos pendientes
+    sql_pedidos_pendientes = """
+    SELECT p.*, c.nombre as cliente_nombre
+    FROM pedidos p
+    JOIN clientes c ON p.cliente_id = c.id
+    WHERE p.estado NOT IN ('Entregado', 'Cancelado')
+    ORDER BY p.fecha_de_inicio DESC
+    LIMIT 5;
+    """
+    cursor.execute(sql_pedidos_pendientes)
+    pedidos_pendientes = cursor.fetchall()
+
+    # Obtener estadísticas de pedidos
+    sql_stats_pedidos = """
+    SELECT 
+        COUNT(*) as total_pedidos,
+        SUM(CASE WHEN estado = 'Pendiente de Seña' THEN 1 ELSE 0 END) as pendiente_sena,
+        SUM(CASE WHEN estado = 'En proceso' THEN 1 ELSE 0 END) as en_proceso,
+        SUM(CASE WHEN estado = 'En entrega' THEN 1 ELSE 0 END) as en_entrega,
+        SUM(CASE WHEN estado = 'Entregado' THEN 1 ELSE 0 END) as entregados,
+        SUM(CASE WHEN estado = 'Cancelado' THEN 1 ELSE 0 END) as cancelados
+    FROM pedidos;
+    """
+    cursor.execute(sql_stats_pedidos)
+    stats_pedidos = cursor.fetchone()
+
+    # Obtener artículos con poco stock
+    sql_stock_bajo = """
+    SELECT *
+    FROM articulos
+    WHERE cantidad <= 5
+    ORDER BY cantidad ASC
+    LIMIT 5;
+    """
+    cursor.execute(sql_stock_bajo)
+    stock_bajo = cursor.fetchall()
+
+    # Obtener top clientes
+    sql_top_clientes = """
+    SELECT c.*, COUNT(p.id) as total_pedidos,
+           SUM(CASE WHEN p.estado = 'Entregado' THEN p.valor ELSE 0 END) as total_gastado
+    FROM clientes c
+    LEFT JOIN pedidos p ON c.id = p.cliente_id
+    GROUP BY c.id
+    ORDER BY total_gastado DESC
+    LIMIT 5;
+    """
+    cursor.execute(sql_top_clientes)
+    top_clientes = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return render_template("index.html", 
+                         ultimos_movimientos=ultimos_movimientos,
+                         balance=balance,
+                         total_ingresos=float(totales["total_ingresos"] or 0),
+                         total_egresos=float(totales["total_egresos"] or 0),
+                         pedidos_pendientes=pedidos_pendientes,
+                         stats_pedidos=stats_pedidos,
+                         stock_bajo=stock_bajo,
+                         top_clientes=top_clientes)
 
 
 @app.route("/register", methods=["GET", "POST"])
