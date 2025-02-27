@@ -60,3 +60,12 @@ CREATE TABLE `usuarios` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_username` (`username`)
 );
+
+CREATE TABLE movimientos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion VARCHAR(255) NOT NULL,
+    movimiento ENUM('ingreso', 'egreso') NOT NULL,
+    id_pedido INT DEFAULT NULL,
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    cantidad_dinero DECIMAL(10,2) NOT NULL
+)

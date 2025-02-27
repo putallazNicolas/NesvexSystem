@@ -611,11 +611,15 @@ def nextState(id):
     cursor = connection.cursor(dictionary=True)
 
     sql_select = """
-    SELECT estado FROM pedidos WHERE id = %s;
+    SELECT estado, valor, costo, cliente_id FROM pedidos WHERE id = %s;
     """
 
     cursor.execute(sql_select, (id, ))
     pedido = cursor.fetchone()
+
+    # Obtener el nombre del cliente para la descripción del movimiento
+    cursor.execute("SELECT nombre FROM clientes WHERE id = %s", (pedido["cliente_id"],))
+    cliente = cursor.fetchone()
 
     sql_update = """
         UPDATE pedidos
@@ -625,10 +629,26 @@ def nextState(id):
 
     if pedido["estado"] == "Pendiente de Seña":
         cursor.execute(sql_update, ("En proceso", id))
+        # Crear movimiento de egreso por el costo
+        sql_movimiento = """
+        INSERT INTO movimientos (descripcion, movimiento, id_pedido, cantidad_dinero)
+        VALUES (%s, 'egreso', %s, %s);
+        """
+        descripcion = f"Costo de producción - Pedido #{id} - Cliente: {cliente['nombre']}"
+        cursor.execute(sql_movimiento, (descripcion, id, pedido["costo"]))
+
     elif pedido["estado"] == "En proceso":
         cursor.execute(sql_update, ("En entrega", id))
     elif pedido["estado"] == "En entrega":
         cursor.execute(sql_update, ("Entregado", id))
+        # Crear movimiento de ingreso por el valor
+        sql_movimiento = """
+        INSERT INTO movimientos (descripcion, movimiento, id_pedido, cantidad_dinero)
+        VALUES (%s, 'ingreso', %s, %s);
+        """
+        descripcion = f"Pago recibido - Pedido #{id} - Cliente: {cliente['nombre']}"
+        cursor.execute(sql_movimiento, (descripcion, id, pedido["valor"]))
+
     elif pedido["estado"] == "Entregado":
         cursor.execute(sql_update, ("Cancelado", id))
 
@@ -651,11 +671,15 @@ def prevState(id):
     cursor = connection.cursor(dictionary=True)
 
     sql_select = """
-    SELECT estado FROM pedidos WHERE id = %s;
+    SELECT estado, valor, costo, cliente_id FROM pedidos WHERE id = %s;
     """
 
     cursor.execute(sql_select, (id, ))
     pedido = cursor.fetchone()
+
+    # Obtener el nombre del cliente para la descripción del movimiento
+    cursor.execute("SELECT nombre FROM clientes WHERE id = %s", (pedido["cliente_id"],))
+    cliente = cursor.fetchone()
 
     sql_update = """
         UPDATE pedidos
@@ -665,10 +689,28 @@ def prevState(id):
 
     if pedido["estado"] == "En proceso":
         cursor.execute(sql_update, ("Pendiente de seña", id))
+        # Eliminar el movimiento de egreso si existe
+        sql_delete_movimiento = """
+        DELETE FROM movimientos 
+        WHERE id_pedido = %s AND movimiento = 'egreso' 
+        AND descripcion LIKE %s;
+        """
+        descripcion_pattern = f"Costo de producción - Pedido #{id}%"
+        cursor.execute(sql_delete_movimiento, (id, descripcion_pattern))
+
     elif pedido["estado"] == "En entrega":
         cursor.execute(sql_update, ("En proceso", id))
     elif pedido["estado"] == "Entregado":
         cursor.execute(sql_update, ("En entrega", id))
+        # Eliminar el movimiento de ingreso si existe
+        sql_delete_movimiento = """
+        DELETE FROM movimientos 
+        WHERE id_pedido = %s AND movimiento = 'ingreso'
+        AND descripcion LIKE %s;
+        """
+        descripcion_pattern = f"Pago recibido - Pedido #{id}%"
+        cursor.execute(sql_delete_movimiento, (id, descripcion_pattern))
+
     elif pedido["estado"] == "Cancelado":
         cursor.execute(sql_update, ("Entregado", id))
 
@@ -970,7 +1012,10 @@ def addArticleToOrder(order_id):
         cursor = connection.cursor(dictionary=True)
 
         sql_order = """
-        SELECT id FROM pedidos WHERE id = %s;
+        SELECT p.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono
+        FROM pedidos p
+        JOIN clientes c ON p.cliente_id = c.id
+        WHERE p.id = %s;
         """
 
         cursor.execute(sql_order, (order_id,))
@@ -979,20 +1024,37 @@ def addArticleToOrder(order_id):
         if not pedido:
             cursor.close()
             connection.close()
-
-            return "no existe un pedido con esa ID"
+            flash("No existe un pedido con ese ID", "error")
+            return redirect("/orders")
         
+        # Obtener solo artículos con stock disponible
         sql_articulos = """
-        SELECT * FROM articulos;
+        SELECT a.*, 
+               COALESCE(
+                   (SELECT SUM(av.cantidad) 
+                    FROM articulos_vendidos av 
+                    WHERE av.articulo_id = a.id AND av.pedido_id = %s), 0
+               ) as cantidad_en_pedido
+        FROM articulos a
+        WHERE a.cantidad > 0
+        ORDER BY a.descripcion ASC;
         """
 
-        cursor.execute(sql_articulos)
+        cursor.execute(sql_articulos, (order_id,))
         articulos = cursor.fetchall()
+
+        if not articulos:
+            flash("No hay artículos disponibles con stock", "warning")
 
         cursor.close()
         connection.close()
         
-        return render_template("addArticleToOrder.html", articulos=articulos, order_id=order_id), 200
+        return render_template(
+            "addArticleToOrder.html", 
+            articulos=articulos, 
+            order_id=order_id,
+            pedido=pedido
+        ), 200
     else:
         articulo = request.form.get("articulo")
         cantidad = request.form.get("cantidad")
@@ -1051,6 +1113,115 @@ def addArticleToOrder(order_id):
         connection.close()
 
         return redirect(f"/orders/see/{order_id}")
+
+
+@app.route("/movements", methods=["GET"])
+@login_required
+def movements():
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    # Obtener todos los movimientos ordenados por fecha descendente
+    sql_movements = """
+    SELECT * FROM movimientos 
+    ORDER BY fecha DESC;
+    """
+    cursor.execute(sql_movements)
+    movimientos = cursor.fetchall()
+
+    # Calcular el balance total
+    balance = 0
+    for movimiento in movimientos:
+        if movimiento["movimiento"] == "ingreso":
+            balance += float(movimiento["cantidad_dinero"])
+        else:
+            balance -= float(movimiento["cantidad_dinero"])
+
+    cursor.close()
+    connection.close()
+
+    return render_template("movements.html", movimientos=movimientos, balance=balance)
+
+
+@app.route("/movements/add", methods=["GET", "POST"])
+@login_required
+def addMovement():
+    if request.method == "GET":
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # Obtener pedidos activos para el selector
+        sql_pedidos = """
+        SELECT p.id, p.estado, c.nombre as cliente_nombre
+        FROM pedidos p
+        JOIN clientes c ON p.cliente_id = c.id
+        WHERE p.estado NOT IN ('Entregado', 'Cancelado')
+        ORDER BY p.fecha_de_inicio DESC;
+        """
+        cursor.execute(sql_pedidos)
+        pedidos = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        return render_template("addmovement.html", pedidos=pedidos)
+    else:
+        descripcion = request.form.get("descripcion")
+        tipo = request.form.get("tipo")
+        pedido = request.form.get("pedido")
+        monto = request.form.get("monto")
+
+        if not descripcion or not tipo or not monto:
+            return render_template("addmovement.html", alert=True, alertMsg="Por favor completa todos los campos requeridos"), 400
+
+        try:
+            monto = float(monto)
+            if monto <= 0:
+                return render_template("addmovement.html", alert=True, alertMsg="El monto debe ser mayor a 0"), 400
+        except ValueError:
+            return render_template("addmovement.html", alert=True, alertMsg="El monto debe ser un número válido"), 400
+
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+
+        sql = """
+        INSERT INTO movimientos (descripcion, movimiento, id_pedido, cantidad_dinero)
+        VALUES (%s, %s, %s, %s);
+        """
+
+        pedido_id = int(pedido) if pedido else None
+        cursor.execute(sql, (descripcion, tipo, pedido_id, monto))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/movements")
+
+
+@app.route("/movements/delete/<int:movement_id>", methods=["GET"])
+@login_required
+def deleteMovement(movement_id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    # Verificar si el movimiento existe
+    cursor.execute("SELECT id FROM movimientos WHERE id = %s", (movement_id,))
+    movement = cursor.fetchone()
+
+    if not movement:
+        cursor.close()
+        connection.close()
+        return "Movimiento no encontrado", 404
+
+    # Eliminar el movimiento
+    cursor.execute("DELETE FROM movimientos WHERE id = %s", (movement_id,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/movements")
 
 
 if __name__ == '__main__':
