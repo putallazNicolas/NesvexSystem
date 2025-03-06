@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Create
+    Añadir Articulo
 {% endblock %}
 
 {% block main %}
@@ -11,19 +11,19 @@
         <div class="row justify-content-center">
             <div class="col">
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" autofocus class="form-control" name="descripcion" id="descripcion" placeholder="Descripcion*" type="text">
+                    <input value="{{ descripcion }}" maxlength="30" autocomplete="off" autofocus class="form-control" name="descripcion" id="descripcion" placeholder="Descripcion*" type="text">
                     <label for="descripcion">Descripcion*</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" autofocus class="form-control" name="cantidad" id="cantidad" placeholder="Stock Actual*" type="number">
+                    <input value="{{ cantidad }}" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" autofocus class="form-control" name="cantidad" id="cantidad" placeholder="Stock Actual*" type="number">
                     <label for="cantidad">Stock Actual*</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="15" autocomplete="off" class="form-control" name="color" id="color" placeholder="Color" type="text">
+                    <input value="{{ color }}" maxlength="15" autocomplete="off" class="form-control" name="color" id="color" placeholder="Color" type="text">
                     <label for="color">Color</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="costo" id="costo" placeholder="Costo*" type="number">
+                    <input value="{{ costo }}" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="costo" id="costo" placeholder="Costo*" type="number">
                     <label for="costo">Costo*</label>
                 </div>
             </div>

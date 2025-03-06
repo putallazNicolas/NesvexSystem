@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Create
+    Editar Cliente
 {% endblock %}
 
 {% block main %}
     <form action="/clients/edit/{{ cliente.id }}" method="post">
-        <h2>Añadir un cliente</h2>
+        <h2>Editar cliente</h2>
         <p><small>* Significa obligatorio</small></p>
         <div class="row justify-content-center">
             <div class="col">
@@ -15,7 +15,7 @@
                     <label for="nombre">Nombre*</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input value="{{ cliente.telefono }}" maxlength="30" autocomplete="off" class="form-control" name="telefono" id="telefono" placeholder="Telefono" type="text">
+                    <input value="{{ cliente.telefono }}" maxlength="30" autocomplete="off" class="form-control" name="telefono" id="telefono" placeholder="Teléfono" type="text">
                     <label for="telefono">Teléfono</label>
                 </div>
                 <div class="form-floating mb-3">
@@ -33,20 +33,20 @@
             </div>
             <div class="col">
                 <div class="form-floating mb-3">
-                    <input value="{{ cliente.direccion }}" maxlength="30" autocomplete="off" class="form-control" name="direccion" id="direccion" placeholder="Dirección*" type="text">
-                    <label for="direccion">Dirección*</label>
+                    <input value="{{ cliente.direccion }}" maxlength="30" autocomplete="off" class="form-control" name="direccion" id="direccion" placeholder="Dirección" type="text">
+                    <label for="direccion">Dirección</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input value="{{ cliente.razon_social }}" maxlength="30" autocomplete="off" class="form-control" name="razon" id="razon" placeholder="Razón Social*" type="text">
-                    <label for="razon">Razón Social*</label>
+                    <input value="{{ cliente.razon_social }}" maxlength="30" autocomplete="off" class="form-control" name="razon" id="razon" placeholder="Razón Social" type="text">
+                    <label for="razon">Razón Social</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input value="{{ cliente.condicion_iva }}" maxlength="30" autocomplete="off" class="form-control" name="condicion" id="condicion" placeholder="Condición IVA*" type="text">
-                    <label for="condicion">Condición IVA*</label>
+                    <input value="{{ cliente.condicion_iva }}" maxlength="30" autocomplete="off" class="form-control" name="condicion" id="condicion" placeholder="Condición IVA" type="text">
+                    <label for="condicion">Condición IVA</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input value="{{ cliente.cuit }}" maxlength="30" autocomplete="off" class="form-control" name="cuit" id="cuit" placeholder="CUIT*" type="text">
-                    <label for="cuit">CUIT*</label>
+                    <input value="{{ cliente.cuit }}" maxlength="30" autocomplete="off" class="form-control" name="cuit" id="cuit" placeholder="CUIT" type="text">
+                    <label for="cuit">CUIT</label>
                 </div>
             </div>
             <div class="col d-flex justify-content-center" style="height: 300px;">
@@ -57,8 +57,7 @@
                               name="notas" 
                               id="notas" 
                               placeholder="Notas" 
-                              style="height: 350px; width: 100%; resize: none;"
-                              >{{ cliente.notas }}</textarea>
+                              style="height: 350px; width: 100%; resize: none;">{{ cliente.notas }}</textarea>
                     <label for="notas">Notas</label>
                 </div>
             </div>

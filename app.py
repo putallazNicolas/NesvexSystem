@@ -406,30 +406,15 @@ def addClient():
         notas = request.form.get("notas")
 
         if not nombre:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el nombre del cliente"), 400
-        
-        if not telefono:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el telefono del cliente"), 400
-        
-        if not correo:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el correo del cliente"), 400
-        
-        if not direccion:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la direccion del cliente"), 400
-        
-        if not razon:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la razon social del cliente"), 400
-        
-        if not condicion:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce la condicion ante el IVA del cliente"), 400
-        
-        if not cuit:
-            return render_template("addClients.html", alert=True, alertMsg="Por favor introduce el CUIT del cliente"), 400
+            return render_template("addclients.html", alert=True, alertMsg="Por favor introduce el nombre del cliente",
+                                telefono=telefono, mail=correo, ig=instagram, fb=facebook, 
+                                direccion=direccion, razon=razon, condicion=condicion, 
+                                cuit=cuit, notas=notas), 400
         
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
 
-            # Consulta SQL para insertar datos
+        # Consulta SQL para insertar datos
         sql = """
             INSERT INTO clientes (
                 nombre, telefono, direccion, mail, instagram, facebook, 
@@ -438,7 +423,7 @@ def addClient():
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
 
-            # Ejecutar la consulta con los valores
+        # Ejecutar la consulta con los valores
         cursor.execute(sql, (nombre, telefono, direccion, correo, instagram, facebook, cuit, razon, condicion, notas))
         connection.commit()
 
@@ -505,8 +490,23 @@ def editClient(client_id):
         notas = request.form.get("notas")
 
         # Validación de datos obligatorios
-        if not nombre or not direccion or not razon or not condicion or not cuit:
-            return render_template("editClient.html", cliente={"id": client_id, "nombre": nombre, "telefono": telefono, "mail": correo, "instagram": instagram, "facebook": facebook, "direccion": direccion, "razon_social": razon, "condicion_iva": condicion, "cuit": cuit, "notas": notas}, alert=True, alertMsg="Todos los campos obligatorios deben completarse"), 400
+        if not nombre:
+            return render_template("editClient.html", 
+                                cliente={
+                                    "id": client_id,
+                                    "nombre": nombre,
+                                    "telefono": telefono,
+                                    "mail": correo,
+                                    "instagram": instagram,
+                                    "facebook": facebook,
+                                    "direccion": direccion,
+                                    "razon_social": razon,
+                                    "condicion_iva": condicion,
+                                    "cuit": cuit,
+                                    "notas": notas
+                                }, 
+                                alert=True, 
+                                alertMsg="El nombre es obligatorio"), 400
 
         # Actualizar el cliente en la base de datos
         sql = """
@@ -539,36 +539,57 @@ def articles():
     return render_template("articles.html", articulos = articulos)
 
 
-@app.route("/articles/add", methods=["POST", "GET"])
-@login_required
+@app.route("/articles/add", methods=["GET", "POST"])
 def addArticle():
     if request.method == "GET":
         return render_template("addarticles.html")
-    elif request.method == "POST":
+    else:
         descripcion = request.form.get("descripcion")
         cantidad = request.form.get("cantidad")
         color = request.form.get("color")
         costo = request.form.get("costo")
 
-        if not descripcion or not cantidad or not costo:
-            return render_template("addarticles.html", alert = True, alertMsg = "Por favor introduce todos los campos obligatorios"), 400
+        if not descripcion:
+            return render_template("addarticles.html", 
+                                descripcion=descripcion,
+                                cantidad=cantidad,
+                                color=color,
+                                costo=costo,
+                                alert=True, 
+                                alertMsg="Por favor introduce la descripción del artículo"), 400
+        
+        if not cantidad:
+            return render_template("addarticles.html", 
+                                descripcion=descripcion,
+                                cantidad=cantidad,
+                                color=color,
+                                costo=costo,
+                                alert=True, 
+                                alertMsg="Por favor introduce la cantidad del artículo"), 400
+        
+        if not costo:
+            return render_template("addarticles.html", 
+                                descripcion=descripcion,
+                                cantidad=cantidad,
+                                color=color,
+                                costo=costo,
+                                alert=True, 
+                                alertMsg="Por favor introduce el costo del artículo"), 400
         
         connection = mysql.connector.connect(**db_config)
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor()
 
-        # valor is 0 because of no need of this column
         sql = """
-            INSERT INTO articulos (
-                descripcion, cantidad, color, costo, valor
-            )
-            VALUES (%s, %s, %s, %s, 0);
+            INSERT INTO articulos (descripcion, cantidad, color, costo)
+            VALUES (%s, %s, %s, %s);
         """
+
         cursor.execute(sql, (descripcion, cantidad, color, costo))
         connection.commit()
 
         cursor.close()
         connection.close()
-
+        
         return redirect("/articles")
     
     
@@ -735,28 +756,38 @@ def createOrder():
         total_costo = request.form.get('totalCostoPedido')
         total_precio = request.form.get('totalPrecioPedido')
 
+        # GET CLIENTS AND ARTICLES for error case
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        sql_clients = """
+        SELECT * FROM clientes;
+        """
+
+        cursor.execute(sql_clients)
+        clientes = cursor.fetchall()
+
+        sql_articles = """
+        SELECT * FROM articulos;
+        """
+
+        cursor.execute(sql_articles)
+        articulos_db = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
         if not cliente_id or not fecha_entrega or not articulos or not total_precio or total_precio == '0.00':
-            # GET CLIENTS AND ARTICLES
-            connection = mysql.connector.connect(**db_config)
-            cursor = connection.cursor(dictionary=True)
-
-            sql_clients = """
-            SELECT * FROM clientes;
-            """
-
-            cursor.execute(sql_clients)
-            clientes = cursor.fetchall()
-
-            sql_articles = """
-            SELECT * FROM articulos;
-            """
-
-            cursor.execute(sql_articles)
-            articulos = cursor.fetchall()
-
-            cursor.close()
-            connection.close()
-            return render_template("addorders.html", alert=True, alertMsg = "Por favor introduce todos los campos", clientes=clientes, articulos=articulos)
+            return render_template("addorders.html", 
+                                clientes=clientes, 
+                                articulos=articulos_db,
+                                cliente_id=cliente_id,
+                                fecha_entrega=fecha_entrega,
+                                articulos_seleccionados=articulos,
+                                total_costo=total_costo,
+                                total_precio=total_precio,
+                                alert=True, 
+                                alertMsg="Por favor introduce todos los campos"), 400
         
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
@@ -775,24 +806,26 @@ def createOrder():
         """
 
         cursor.execute(sql_cliente, (cliente_id,))
+        connection.commit()
 
         for articulo in articulos:
+            sql_articulo_vendido = """
+            INSERT INTO articulos_vendidos
+            (articulo_id, cantidad, pedido_id, costo_total)
+            VALUES
+            (%s, %s, %s, %s);
+            """
+
+            cursor.execute(sql_articulo_vendido, (articulo["id"], articulo["cantidad"], pedido_id, articulo["costo_total"]))
+            connection.commit()
+
             sql_articulo = """
-            INSERT INTO articulos_vendidos (articulo_id, pedido_id, cantidad, costo_total) VALUES (%s, %s, %s, %s)
+            UPDATE articulos SET cantidad = cantidad - %s WHERE id = %s;
             """
 
-            cursor.execute(sql_articulo, (articulo["id"], pedido_id, articulo["cantidad"], articulo["costo_total"]))
+            cursor.execute(sql_articulo, (articulo["cantidad"], articulo["id"]))
             connection.commit()
 
-            sql_stock = """
-            UPDATE articulos
-            SET cantidad = cantidad - %s
-            WHERE id = %s;
-            """
-
-            cursor.execute(sql_stock, (articulo["cantidad"], articulo["id"]))
-            connection.commit()
-            
         cursor.close()
         connection.close()
 
@@ -1043,6 +1076,23 @@ def createdb():
             );
         """)
         print("Tabla 'usuarios' creada exitosamente")
+
+        # Crear usuario admin por defecto
+        admin_password = generate_password_hash("admin")
+        cursor.execute("INSERT INTO usuarios (username, hash) VALUES (%s, %s)", ("admin", admin_password))
+        connection.commit()
+        print("Usuario admin creado exitosamente")
+    else:
+        # Verificar si el usuario admin ya existe
+        cursor.execute("SELECT * FROM usuarios WHERE username = 'admin'")
+        admin_user = cursor.fetchone()
+        
+        if not admin_user:
+            # Crear usuario admin
+            admin_password = generate_password_hash("admin")
+            cursor.execute("INSERT INTO usuarios (username, hash) VALUES (%s, %s)", ("admin", admin_password))
+            connection.commit()
+            print("Usuario admin creado exitosamente")
 
     if 'clientes' not in existing_tables:
         # Crear tabla 'clientes'
@@ -1398,15 +1448,53 @@ def addMovement():
         pedido = request.form.get("pedido")
         monto = request.form.get("monto")
 
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # Obtener pedidos activos para el selector
+        sql_pedidos = """
+        SELECT p.id, p.estado, c.nombre as cliente_nombre
+        FROM pedidos p
+        JOIN clientes c ON p.cliente_id = c.id
+        WHERE p.estado NOT IN ('Entregado', 'Cancelado')
+        ORDER BY p.fecha_de_inicio DESC;
+        """
+        cursor.execute(sql_pedidos)
+        pedidos = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
         if not descripcion or not tipo or not monto:
-            return render_template("addmovement.html", alert=True, alertMsg="Por favor completa todos los campos requeridos"), 400
+            return render_template("addmovement.html", 
+                                pedidos=pedidos,
+                                descripcion=descripcion,
+                                tipo=tipo,
+                                pedido=pedido,
+                                monto=monto,
+                                alert=True, 
+                                alertMsg="Por favor completa todos los campos requeridos"), 400
 
         try:
             monto = float(monto)
             if monto <= 0:
-                return render_template("addmovement.html", alert=True, alertMsg="El monto debe ser mayor a 0"), 400
+                return render_template("addmovement.html", 
+                                    pedidos=pedidos,
+                                    descripcion=descripcion,
+                                    tipo=tipo,
+                                    pedido=pedido,
+                                    monto=monto,
+                                    alert=True, 
+                                    alertMsg="El monto debe ser mayor a 0"), 400
         except ValueError:
-            return render_template("addmovement.html", alert=True, alertMsg="El monto debe ser un número válido"), 400
+            return render_template("addmovement.html", 
+                                pedidos=pedidos,
+                                descripcion=descripcion,
+                                tipo=tipo,
+                                pedido=pedido,
+                                monto=monto,
+                                alert=True, 
+                                alertMsg="El monto debe ser un número válido"), 400
 
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()

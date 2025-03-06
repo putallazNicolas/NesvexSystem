@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Create
+    Añadir Cliente
 {% endblock %}
 
 {% block main %}
@@ -15,38 +15,38 @@
                     <label for="nombre">Nombre*</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="telefono" id="telefono" placeholder="Telefono" type="text">
+                    <input value="{{ telefono }}" maxlength="30" autocomplete="off" class="form-control" name="telefono" id="telefono" placeholder="Teléfono" type="text">
                     <label for="telefono">Teléfono</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="mail" id="mail" placeholder="Correo" type="email">
+                    <input value="{{ mail }}" maxlength="30" autocomplete="off" class="form-control" name="mail" id="mail" placeholder="Correo" type="email">
                     <label for="mail">Correo</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="ig" id="ig" placeholder="Instagram" type="text">
+                    <input value="{{ ig }}" maxlength="30" autocomplete="off" class="form-control" name="ig" id="ig" placeholder="Instagram" type="text">
                     <label for="ig">Instagram</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="fb" id="fb" placeholder="Facebook" type="text">
+                    <input value="{{ fb }}" maxlength="30" autocomplete="off" class="form-control" name="fb" id="fb" placeholder="Facebook" type="text">
                     <label for="fb">Facebook</label>
                 </div>
             </div>
             <div class="col">
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="direccion" id="direccion" placeholder="Dirección*" type="text">
-                    <label for="direccion">Dirección*</label>
+                    <input value="{{ direccion }}" maxlength="30" autocomplete="off" class="form-control" name="direccion" id="direccion" placeholder="Dirección" type="text">
+                    <label for="direccion">Dirección</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="razon" id="razon" placeholder="Razón Social*" type="text">
-                    <label for="razon">Razón Social*</label>
+                    <input value="{{ razon }}" maxlength="30" autocomplete="off" class="form-control" name="razon" id="razon" placeholder="Razón Social" type="text">
+                    <label for="razon">Razón Social</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="condicion" id="condicion" placeholder="Condición IVA*" type="text">
-                    <label for="condicion">Condición IVA*</label>
+                    <input value="{{ condicion }}" maxlength="30" autocomplete="off" class="form-control" name="condicion" id="condicion" placeholder="Condición IVA" type="text">
+                    <label for="condicion">Condición IVA</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" class="form-control" name="cuit" id="cuit" placeholder="CUIT*" type="text">
-                    <label for="cuit">CUIT*</label>
+                    <input value="{{ cuit }}" maxlength="30" autocomplete="off" class="form-control" name="cuit" id="cuit" placeholder="CUIT" type="text">
+                    <label for="cuit">CUIT</label>
                 </div>
             </div>
             <div class="col d-flex justify-content-center" style="height: 300px;">
@@ -57,7 +57,7 @@
                               name="notas" 
                               id="notas" 
                               placeholder="Notas" 
-                              style="height: 350px; width: 100%; resize: none;"></textarea>
+                              style="height: 350px; width: 100%; resize: none;">{{ notas }}</textarea>
                     <label for="notas">Notas</label>
                 </div>
             </div>

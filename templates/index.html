@@ -11,26 +11,37 @@
     <!-- Resumen Financiero -->
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Ingresos Totales</h5>
-                    <h3 class="card-text">+${{ "{:,.2f}".format(total_ingresos) }}</h3>
+            <div class="card h-100 bg-gradient shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-arrow-up fa-2x text-success me-2"></i>
+                        <h5 class="card-title mb-0">Ingresos Totales</h5>
+                    </div>
+                    <h2 class="display-6 fw-bold text-success mb-0">+${{ "{:,.2f}".format(total_ingresos) }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Egresos Totales</h5>
-                    <h3 class="card-text">-${{ "{:,.2f}".format(total_egresos) }}</h3>
+            <div class="card h-100 bg-gradient shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-arrow-down fa-2x text-danger me-2"></i>
+                        <h5 class="card-title mb-0">Egresos Totales</h5>
+                    </div>
+                    <h2 class="display-6 fw-bold text-danger mb-0">-${{ "{:,.2f}".format(total_egresos) }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card {% if balance >= 0 %}bg-success{% else %}bg-danger{% endif %} text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Balance Total</h5>
-                    <h3 class="card-text">{% if balance >= 0 %}+{% endif %}${{ "{:,.2f}".format(balance) }}</h3>
+            <div class="card h-100 bg-gradient shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-balance-scale fa-2x {% if balance >= 0 %}text-success{% else %}text-danger{% endif %} me-2"></i>
+                        <h5 class="card-title mb-0">Balance Total</h5>
+                    </div>
+                    <h2 class="display-6 fw-bold {% if balance >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                        {% if balance >= 0 %}+{% endif %}${{ "{:,.2f}".format(balance) }}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -207,11 +218,16 @@
                             <tbody>
                                 {% for cliente in top_clientes %}
                                 <tr>
-                                    <td>{{ cliente.nombre }}</td>
-                                    <td>{{ cliente.total_pedidos }}</td>
-                                    <td>${{ "{:,.2f}".format(cliente.total_gastado) }}</td>
+                                    <td>{{ cliente.nombre if cliente.nombre else 'Sin nombre' }}</td>
+                                    <td>{{ cliente.total_pedidos if cliente.total_pedidos else 'Sin pedidos' }}</td>
+                                    <td>{% if cliente.total_gastado %}${{ "{:,.2f}".format(cliente.total_gastado) }}{% else %}Sin gastos{% endif %}</td>
                                 </tr>
                                 {% endfor %}
+                                {% if not top_clientes %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No hay datos de clientes disponibles</td>
+                                </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>

@@ -25,19 +25,19 @@
         <tr>
             <td class="align-middle">{{ cliente.nombre }}</td>
             <td class="align-middle">
-                <strong>Teléfono:</strong> {{ cliente.telefono }}<br>
-                <strong>Correo:</strong> {{ cliente.mail }}<br>
-                <strong>Instagram:</strong> {{ cliente.instagram }}<br>
-                <strong>Facebook:</strong> {{ cliente.facebook }}
+                <strong>Teléfono:</strong> {{ cliente.telefono if cliente.telefono else '<em>Sin teléfono</em>'|safe }}<br>
+                <strong>Correo:</strong> {{ cliente.mail if cliente.mail else '<em>Sin correo</em>'|safe }}<br>
+                <strong>Instagram:</strong> {{ cliente.instagram if cliente.instagram else '<em>Sin Instagram</em>'|safe }}<br>
+                <strong>Facebook:</strong> {{ cliente.facebook if cliente.facebook else '<em>Sin Facebook</em>'|safe }}
             </td>
             <td class="align-middle">
-                <strong>Dirección:</strong> {{ cliente.direccion }}<br>
-                <strong>Razón Social:</strong> {{ cliente.razon_social }}<br>
-                <strong>Condición IVA:</strong> {{ cliente.condicion_iva }}<br>
-                <strong>CUIT:</strong> {{ cliente.cuit }}
+                <strong>Dirección:</strong> {{ cliente.direccion if cliente.direccion else '<em>Sin dirección</em>'|safe }}<br>
+                <strong>Razón Social:</strong> {{ cliente.razon_social if cliente.razon_social else '<em>Sin razón social</em>'|safe }}<br>
+                <strong>Condición IVA:</strong> {{ cliente.condicion_iva if cliente.condicion_iva else '<em>Sin condición IVA</em>'|safe }}<br>
+                <strong>CUIT:</strong> {{ cliente.cuit if cliente.cuit else '<em>Sin CUIT</em>'|safe }}
             </td>
-            <td class="align-middle">{{ cliente.cantidad_compras }}</td>
-            <td class="align-middle" style="max-width: 150px;">{{ cliente.notas }}</td>
+            <td class="align-middle">{{ cliente.cantidad_compras if cliente.cantidad_compras else '<em>0</em>'|safe }}</td>
+            <td class="align-middle" style="max-width: 150px;">{{ cliente.notas if cliente.notas else '<em>Sin notas</em>'|safe }}</td>
             <td class="align-middle">
                 <div class="d-grid gap-2">
                     <a class="btn btn-primary" href="clients/edit/{{ cliente.id }}">Editar</a>
@@ -47,7 +47,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="6">No hay clientes disponibles.</td>
+            <td colspan="6" class="text-center"><em>No hay clientes registrados.</em></td>
         </tr>
         {% endfor %}
     </tbody>    
