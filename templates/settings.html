@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Configuración
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Configuración</h1>
+
+    {% if alert %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ alertMsg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-4">Alerta de Stock Bajo</h5>
+                    <form action="/settings" method="post">
+                        <div class="mb-4">
+                            <label for="alerta_stock" class="form-label">Mostrar alerta cuando el stock sea menor o igual a:</label>
+                            <input type="number" class="form-control" id="alerta_stock" name="alerta_stock" value="{{ alerta_stock }}" min="1" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

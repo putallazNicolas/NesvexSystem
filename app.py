@@ -73,6 +73,11 @@ def index():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)
 
+    # Obtener el valor de alerta de stock bajo
+    cursor.execute("SELECT valor FROM configuracion WHERE nombre = 'alerta_stock_bajo'")
+    config = cursor.fetchone()
+    alerta_stock = config["valor"] if config else 5
+
     # Obtener últimos movimientos
     sql_ultimos_movimientos = """
     SELECT m.*, p.estado as pedido_estado, c.nombre as cliente_nombre 
@@ -126,11 +131,11 @@ def index():
     sql_stock_bajo = """
     SELECT *
     FROM articulos
-    WHERE cantidad <= 5
+    WHERE cantidad <= %s
     ORDER BY cantidad ASC
     LIMIT 5;
     """
-    cursor.execute(sql_stock_bajo)
+    cursor.execute(sql_stock_bajo, (alerta_stock,))
     stock_bajo = cursor.fetchall()
 
     # Obtener top clientes
@@ -157,6 +162,7 @@ def index():
                          pedidos_pendientes=pedidos_pendientes,
                          stats_pedidos=stats_pedidos,
                          stock_bajo=stock_bajo,
+                         alerta_stock=alerta_stock,
                          top_clientes=top_clientes)
 
 
@@ -1064,6 +1070,24 @@ def createdb():
     cursor.execute("SHOW TABLES")
     existing_tables = [table[f'Tables_in_{database}'] for table in cursor.fetchall()]
 
+    if 'configuracion' not in existing_tables:
+        # Crear tabla 'configuracion'
+        cursor.execute("""
+            CREATE TABLE configuracion (
+                id INT NOT NULL AUTO_INCREMENT,
+                nombre VARCHAR(50) NOT NULL,
+                valor INT NOT NULL,
+                PRIMARY KEY (id),
+                UNIQUE KEY unique_nombre (nombre)
+            );
+        """)
+        print("Tabla 'configuracion' creada exitosamente")
+
+        # Insertar configuración por defecto
+        cursor.execute("INSERT INTO configuracion (nombre, valor) VALUES ('alerta_stock_bajo', 5)")
+        connection.commit()
+        print("Configuración por defecto creada exitosamente")
+
     if 'usuarios' not in existing_tables:
         # Crear tabla 'usuarios'
         cursor.execute("""
@@ -1537,6 +1561,44 @@ def deleteMovement(movement_id):
     connection.close()
 
     return redirect("/movements")
+
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    if request.method == "POST":
+        alerta_stock = request.form.get("alerta_stock")
+        
+        if not alerta_stock or not alerta_stock.isdigit() or int(alerta_stock) < 1:
+            cursor.execute("SELECT valor FROM configuracion WHERE nombre = 'alerta_stock_bajo'")
+            config = cursor.fetchone()
+            cursor.close()
+            connection.close()
+            return render_template("settings.html", 
+                                alerta_stock=config["valor"] if config else 5,
+                                alert=True, 
+                                alertMsg="Por favor introduce un número válido mayor a 0"), 400
+
+        cursor.execute("""
+            INSERT INTO configuracion (nombre, valor) 
+            VALUES ('alerta_stock_bajo', %s)
+            ON DUPLICATE KEY UPDATE valor = %s
+        """, (alerta_stock, alerta_stock))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        return redirect("/")
+    else:
+        cursor.execute("SELECT valor FROM configuracion WHERE nombre = 'alerta_stock_bajo'")
+        config = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        return render_template("settings.html", alerta_stock=config["valor"] if config else 5)
 
 
 if __name__ == '__main__':

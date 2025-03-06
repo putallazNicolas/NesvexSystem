@@ -55,27 +55,27 @@
                     <h5 class="card-title">Estado de Pedidos</h5>
                     <div class="row text-center">
                         <div class="col">
-                            <h4>{{ stats_pedidos.total_pedidos }}</h4>
+                            <h4>{{ stats_pedidos.total_pedidos if stats_pedidos.total_pedidos else '<em>0</em>'|safe }}</h4>
                             <p>Total</p>
                         </div>
                         <div class="col">
-                            <h4>{{ stats_pedidos.pendiente_sena }}</h4>
+                            <h4>{{ stats_pedidos.pendiente_sena if stats_pedidos.pendiente_sena else '<em>0</em>'|safe }}</h4>
                             <p>Pendientes</p>
                         </div>
                         <div class="col">
-                            <h4>{{ stats_pedidos.en_proceso }}</h4>
+                            <h4>{{ stats_pedidos.en_proceso if stats_pedidos.en_proceso else '<em>0</em>'|safe }}</h4>
                             <p>En Proceso</p>
                         </div>
                         <div class="col">
-                            <h4>{{ stats_pedidos.en_entrega }}</h4>
+                            <h4>{{ stats_pedidos.en_entrega if stats_pedidos.en_entrega else '<em>0</em>'|safe }}</h4>
                             <p>En Entrega</p>
                         </div>
                         <div class="col">
-                            <h4>{{ stats_pedidos.entregados }}</h4>
+                            <h4>{{ stats_pedidos.entregados if stats_pedidos.entregados else '<em>0</em>'|safe }}</h4>
                             <p>Entregados</p>
                         </div>
                         <div class="col">
-                            <h4>{{ stats_pedidos.cancelados }}</h4>
+                            <h4>{{ stats_pedidos.cancelados if stats_pedidos.cancelados else '<em>0</em>'|safe }}</h4>
                             <p>Cancelados</p>
                         </div>
                     </div>
@@ -111,6 +111,10 @@
                                         {% if movimiento.movimiento == 'ingreso' %}+{% else %}-{% endif %}
                                         ${{ "{:,.2f}".format(movimiento.cantidad_dinero) }}
                                     </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center"><em>No hay movimientos registrados</em></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -154,6 +158,10 @@
                                     </td>
                                     <td>${{ "{:,.2f}".format(pedido.valor) }}</td>
                                 </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center"><em>No hay pedidos pendientes</em></td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -169,7 +177,10 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title">Artículos con Stock Bajo</h5>
+                        <div>
+                            <h5 class="card-title mb-0">Artículos con Stock Bajo</h5>
+                            <small class="text-muted">Alerta cuando stock ≤ {{ alerta_stock }} <a href="/settings" class="text-decoration-none"><i class="fas fa-cog"></i></a></small>
+                        </div>
                         <a href="/articles" class="btn btn-primary btn-sm">Ver Todos</a>
                     </div>
                     <div class="table-responsive">
@@ -185,10 +196,14 @@
                                 {% for articulo in stock_bajo %}
                                 <tr>
                                     <td>{{ articulo.descripcion }}</td>
-                                    <td class="{% if articulo.cantidad <= 2 %}text-danger{% elif articulo.cantidad <= 5 %}text-warning{% endif %}">
+                                    <td class="{% if articulo.cantidad <= 2 %}text-danger{% elif articulo.cantidad <= alerta_stock %}text-warning{% endif %}">
                                         {{ articulo.cantidad }}
                                     </td>
                                     <td>${{ "{:,.2f}".format(articulo.costo) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center"><em>No hay artículos con stock bajo</em></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -218,16 +233,15 @@
                             <tbody>
                                 {% for cliente in top_clientes %}
                                 <tr>
-                                    <td>{{ cliente.nombre if cliente.nombre else 'Sin nombre' }}</td>
-                                    <td>{{ cliente.total_pedidos if cliente.total_pedidos else 'Sin pedidos' }}</td>
-                                    <td>{% if cliente.total_gastado %}${{ "{:,.2f}".format(cliente.total_gastado) }}{% else %}Sin gastos{% endif %}</td>
+                                    <td>{{ cliente.nombre if cliente.nombre else '<em>Sin nombre</em>'|safe }}</td>
+                                    <td>{{ cliente.total_pedidos if cliente.total_pedidos else '<em>0</em>'|safe }}</td>
+                                    <td>{% if cliente.total_gastado %}${{ "{:,.2f}".format(cliente.total_gastado) }}{% else %}<em>$0.00</em>{% endif %}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center"><em>No hay datos de clientes disponibles</em></td>
                                 </tr>
                                 {% endfor %}
-                                {% if not top_clientes %}
-                                <tr>
-                                    <td colspan="3" class="text-center">No hay datos de clientes disponibles</td>
-                                </tr>
-                                {% endif %}
                             </tbody>
                         </table>
                     </div>
