@@ -109,4 +109,4 @@ Nicolás Putallaz - nfputallaz@gmail.com
 
 Si te interesa usar el sistema para tu negocio, no dudes en contactarme!
 
-Link del Proyecto: [https://github.com/tu-usuario/NesvexSystem](https://github.com/putallazNicolas/NesvexSystem.git)
+Link del Proyecto: [https://github.com/putallazNicolas/NesvexSystem](https://github.com/putallazNicolas/NesvexSystem.git)
