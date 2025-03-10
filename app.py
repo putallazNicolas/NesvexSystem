@@ -8,6 +8,7 @@ from functools import wraps
 from random import shuffle
 import re
 from urllib.parse import urlparse
+import time
 
 app = Flask(__name__)
 
@@ -22,6 +23,7 @@ password = os.getenv("DB_PASSWORD")
 database = os.getenv("DB_NAME")
 database_url = os.getenv("DB_URL")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
+MAX_USERS = os.getenv("MAX_USERS")
 
 db_url = urlparse(database_url)
 
@@ -40,6 +42,164 @@ db_config = {
     'charset': 'latin1'
 }
 
+def check_and_update_database():
+    """Verifica y actualiza la estructura de la base de datos"""
+    try:
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # Verificar si las tablas ya existen
+        cursor.execute("SHOW TABLES")
+        existing_tables = [table[f'Tables_in_{database}'] for table in cursor.fetchall()]
+
+        # Lista de tablas requeridas y sus estructuras
+        required_tables = {
+            'configuracion': """
+                CREATE TABLE IF NOT EXISTS configuracion (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    nombre VARCHAR(50) NOT NULL,
+                    valor INT NOT NULL,
+                    PRIMARY KEY (id),
+                    UNIQUE KEY unique_nombre (nombre)
+                );
+            """,
+            'usuarios': """
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    username VARCHAR(100) DEFAULT NULL,
+                    hash VARCHAR(255) DEFAULT NULL,
+                    session_token VARCHAR(255) DEFAULT NULL,
+                    PRIMARY KEY (id),
+                    UNIQUE KEY unique_username (username)
+                );
+            """,
+            'clientes': """
+                CREATE TABLE IF NOT EXISTS clientes (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    nombre VARCHAR(255) NOT NULL,
+                    telefono VARCHAR(20) DEFAULT NULL,
+                    direccion VARCHAR(255) DEFAULT NULL,
+                    mail VARCHAR(255) DEFAULT NULL,
+                    instagram VARCHAR(255) DEFAULT NULL,
+                    facebook VARCHAR(255) DEFAULT NULL,
+                    cuit VARCHAR(20) NOT NULL,
+                    razon_social VARCHAR(255) DEFAULT NULL,
+                    condicion_iva VARCHAR(255) DEFAULT NULL,
+                    cantidad_compras INT DEFAULT 0,
+                    notas TEXT,
+                    PRIMARY KEY (id)
+                );
+            """,
+            'articulos': """
+                CREATE TABLE IF NOT EXISTS articulos (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    descripcion VARCHAR(255) NOT NULL,
+                    cantidad INT NOT NULL DEFAULT 0,
+                    color VARCHAR(50) DEFAULT NULL,
+                    costo DECIMAL(10,2) NOT NULL,
+                    valor DECIMAL(10,2) NOT NULL,
+                    PRIMARY KEY (id)
+                );
+            """,
+            'pedidos': """
+                CREATE TABLE IF NOT EXISTS pedidos (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    cliente_id INT NOT NULL,
+                    estado ENUM('Pendiente de Seña', 'En proceso', 'En entrega', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Pendiente de Seña',
+                    costo DECIMAL(10,2) NOT NULL,
+                    valor DECIMAL(10,2) NOT NULL,
+                    fecha_de_inicio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    fecha_de_entrega DATETIME DEFAULT NULL,
+                    PRIMARY KEY (id),
+                    KEY cliente_id (cliente_id),
+                    CONSTRAINT pedidos_ibfk_1 FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
+                    CONSTRAINT pedidos_chk_1 CHECK (costo >= 0),
+                    CONSTRAINT pedidos_chk_2 CHECK (valor >= 0)
+                );
+            """,
+            'articulos_vendidos': """
+                CREATE TABLE IF NOT EXISTS articulos_vendidos (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    articulo_id INT NOT NULL,
+                    pedido_id INT NOT NULL,
+                    cantidad INT NOT NULL,
+                    costo_total DECIMAL(10,2) NOT NULL,
+                    PRIMARY KEY (id),
+                    KEY articulo_id (articulo_id),
+                    KEY pedido_id (pedido_id),
+                    CONSTRAINT articulos_vendidos_ibfk_1 FOREIGN KEY (articulo_id) REFERENCES articulos (id) ON DELETE CASCADE,
+                    CONSTRAINT articulos_vendidos_ibfk_2 FOREIGN KEY (pedido_id) REFERENCES pedidos (id) ON DELETE CASCADE,
+                    CONSTRAINT articulos_vendidos_chk_1 CHECK (cantidad > 0)
+                );
+            """,
+            'movimientos': """
+                CREATE TABLE IF NOT EXISTS movimientos (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    descripcion VARCHAR(255) NOT NULL,
+                    movimiento ENUM('ingreso', 'egreso') NOT NULL,
+                    id_pedido INT DEFAULT NULL,
+                    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    cantidad_dinero DECIMAL(10,2) NOT NULL,
+                    PRIMARY KEY (id),
+                    KEY id_pedido (id_pedido),
+                    CONSTRAINT movimientos_ibfk_1 FOREIGN KEY (id_pedido) REFERENCES pedidos (id) ON DELETE SET NULL,
+                    CONSTRAINT movimientos_chk_1 CHECK (cantidad_dinero > 0)
+                );
+            """
+        }
+
+        # Crear o actualizar cada tabla
+        for table_name, create_sql in required_tables.items():
+            if table_name not in existing_tables:
+                cursor.execute(create_sql)
+                print(f"Tabla '{table_name}' creada exitosamente")
+            else:
+                # Verificar si la tabla tiene todas las columnas necesarias
+                cursor.execute(f"SHOW COLUMNS FROM {table_name}")
+                existing_columns = [column['Field'] for column in cursor.fetchall()]
+                
+                # Verificar columnas específicas según la tabla
+                if table_name == 'usuarios' and 'session_token' not in existing_columns:
+                    cursor.execute("ALTER TABLE usuarios ADD COLUMN session_token VARCHAR(255) DEFAULT NULL")
+                    print(f"Columna session_token agregada a la tabla '{table_name}'")
+
+        # Verificar y crear usuario admin si no existe
+        cursor.execute("SELECT * FROM usuarios WHERE username = 'admin'")
+        admin_user = cursor.fetchone()
+        
+        if not admin_user:
+            admin_password = generate_password_hash("admin")
+            cursor.execute("INSERT INTO usuarios (username, hash) VALUES (%s, %s)", ("admin", admin_password))
+            print("Usuario admin creado exitosamente")
+
+        # Verificar y crear configuración por defecto si no existe
+        cursor.execute("SELECT * FROM configuracion WHERE nombre = 'alerta_stock_bajo'")
+        config = cursor.fetchone()
+        
+        if not config:
+            cursor.execute("INSERT INTO configuracion (nombre, valor) VALUES ('alerta_stock_bajo', 5)")
+            print("Configuración por defecto creada exitosamente")
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("Verificación y actualización de la base de datos completada exitosamente")
+
+    except mysql.connector.Error as err:
+        print(f"Error al verificar/actualizar la base de datos: {err}")
+        raise
+
+# Variable global para controlar la primera ejecución
+db_checked = False
+
+@app.before_request
+def before_request():
+    """Se ejecuta antes de cada petición"""
+    global db_checked
+    if not db_checked:
+        check_and_update_database()
+        db_checked = True
+
 email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'
 
 def login_required(f):
@@ -53,6 +213,19 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if session.get("user_id") is None:
             return redirect("/login")
+        
+        # Verificar token de sesión
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT session_token FROM usuarios WHERE id = %s", (session["user_id"],))
+        user = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if not user or user["session_token"] != session.get("session_token"):
+            session.clear()
+            return redirect("/login")
+            
         return f(*args, **kwargs)
 
     return decorated_function
@@ -155,10 +328,6 @@ def index():
         cursor.close()
         connection.close()
 
-        # Si llegamos aquí sin errores, limpiamos la variable de redirección
-        if 'db_redirect' in session:
-            session.pop('db_redirect')
-
         return render_template("index.html", 
                             ultimos_movimientos=ultimos_movimientos,
                             balance=balance,
@@ -171,13 +340,7 @@ def index():
                             top_clientes=top_clientes)
     
     except mysql.connector.Error as err:
-        # Si ya intentamos redirigir una vez, mostramos el error
-        if 'db_redirect' in session:
-            return f"Error de base de datos: {err}", 500
-        
-        # Si es el primer error, marcamos que intentamos redirigir y vamos a CREATEDATABASE
-        session['db_redirect'] = True
-        return redirect("/CREATEDATABASE")
+        return f"Error de base de datos: {err}", 500
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -185,6 +348,17 @@ def index():
 def register():
     """Register user"""
     if request.method == "POST":
+
+        if MAX_USERS:
+            connection = mysql.connector.connect(**db_config)
+            cursor = connection.cursor()
+            cursor.execute("SELECT COUNT(*) FROM usuarios")
+            (user_count,) = cursor.fetchone()
+            cursor.close()
+            connection.close()
+            if user_count >= MAX_USERS:
+                return render_template("register.html", alert=True, alertMsg="No se pueden crear más usuarios"), 400
+            
         username = request.form.get("username")
         password = request.form.get("password")
         passwordConfirmation = request.form.get("confirmation")
@@ -336,6 +510,41 @@ def edit_user(username):
     else:
         return render_template("edit_user.html", username=username)
 
+@app.route("/users/delete/<int:user_id>", methods=["GET"])
+@login_required
+def delete_user(user_id):
+    """Eliminar usuario específico"""
+    # No permitir eliminar el usuario admin (id 1)
+    if user_id == 1:
+        return render_template("users.html", users=users, alert=True, alertMsg="No se puede eliminar el usuario administrador"), 400
+
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+
+    # Verificar si el usuario existe
+    cursor.execute("SELECT id FROM usuarios WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if not user:
+        cursor.close()
+        connection.close()
+        return render_template("users.html", users=users, alert=True, alertMsg="Usuario no encontrado"), 404
+
+    # No permitir que un usuario se elimine a sí mismo
+    if user_id == session["user_id"]:
+        cursor.close()
+        connection.close()
+        return render_template("users.html", users=users, alert=True, alertMsg="No puedes eliminarte a ti mismo"), 400
+
+    # Eliminar el usuario
+    cursor.execute("DELETE FROM usuarios WHERE id = %s", (user_id,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/users")
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
@@ -372,11 +581,23 @@ def login():
             if not check_password_hash(storedHash, password):
                 return render_template("login.html", alert=True, alertMsg = "Invalid username and/or password"), 400
 
-        # Remember which user has logged in
-        session["user_id"] = storedId
+            # Generar nuevo token de sesión
+            new_session_token = generate_password_hash(username + str(storedId) + str(time.time()))
 
-        # Redirect user to home page
-        return redirect("/")
+            # Actualizar el token de sesión en la base de datos
+            connection = mysql.connector.connect(**db_config)
+            cursor = connection.cursor()
+            cursor.execute("UPDATE usuarios SET session_token = %s WHERE id = %s", (new_session_token, storedId))
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+            # Remember which user has logged in and their session token
+            session["user_id"] = storedId
+            session["session_token"] = new_session_token
+
+            # Redirect user to home page
+            return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -1074,163 +1295,6 @@ def seeOrder(order_id):
 
     return render_template("order.html", pedido=pedido, cliente=cliente, articulos = articulos)
 
-
-@app.route("/CREATEDATABASE", methods=["GET"])
-def createdb():
-    connection = mysql.connector.connect(**db_config)
-    cursor = connection.cursor(dictionary=True)
-
-    # Verificar si las tablas ya existen
-    cursor.execute("SHOW TABLES")
-    existing_tables = [table[f'Tables_in_{database}'] for table in cursor.fetchall()]
-
-    if 'configuracion' not in existing_tables:
-        # Crear tabla 'configuracion'
-        cursor.execute("""
-            CREATE TABLE configuracion (
-                id INT NOT NULL AUTO_INCREMENT,
-                nombre VARCHAR(50) NOT NULL,
-                valor INT NOT NULL,
-                PRIMARY KEY (id),
-                UNIQUE KEY unique_nombre (nombre)
-            );
-        """)
-        print("Tabla 'configuracion' creada exitosamente")
-
-        # Insertar configuración por defecto
-        cursor.execute("INSERT INTO configuracion (nombre, valor) VALUES ('alerta_stock_bajo', 5)")
-        connection.commit()
-        print("Configuración por defecto creada exitosamente")
-
-    if 'usuarios' not in existing_tables:
-        # Crear tabla 'usuarios'
-        cursor.execute("""
-            CREATE TABLE usuarios (
-                id INT NOT NULL AUTO_INCREMENT,
-                username VARCHAR(100) DEFAULT NULL,
-                hash VARCHAR(255) DEFAULT NULL,
-                PRIMARY KEY (id),
-                UNIQUE KEY unique_username (username)
-            );
-        """)
-        print("Tabla 'usuarios' creada exitosamente")
-
-        # Crear usuario admin por defecto
-        admin_password = generate_password_hash("admin")
-        cursor.execute("INSERT INTO usuarios (username, hash) VALUES (%s, %s)", ("admin", admin_password))
-        connection.commit()
-        print("Usuario admin creado exitosamente")
-    else:
-        # Verificar si el usuario admin ya existe
-        cursor.execute("SELECT * FROM usuarios WHERE username = 'admin'")
-        admin_user = cursor.fetchone()
-        
-        if not admin_user:
-            # Crear usuario admin
-            admin_password = generate_password_hash("admin")
-            cursor.execute("INSERT INTO usuarios (username, hash) VALUES (%s, %s)", ("admin", admin_password))
-            connection.commit()
-            print("Usuario admin creado exitosamente")
-
-    if 'clientes' not in existing_tables:
-        # Crear tabla 'clientes'
-        cursor.execute("""
-            CREATE TABLE clientes (
-                id INT NOT NULL AUTO_INCREMENT,
-                nombre VARCHAR(255) NOT NULL,
-                telefono VARCHAR(20) DEFAULT NULL,
-                direccion VARCHAR(255) DEFAULT NULL,
-                mail VARCHAR(255) DEFAULT NULL,
-                instagram VARCHAR(255) DEFAULT NULL,
-                facebook VARCHAR(255) DEFAULT NULL,
-                cuit VARCHAR(20) NOT NULL,
-                razon_social VARCHAR(255) DEFAULT NULL,
-                condicion_iva VARCHAR(255) DEFAULT NULL,
-                cantidad_compras INT DEFAULT 0,
-                notas TEXT,
-                PRIMARY KEY (id)
-            );
-        """)
-        print("Tabla 'clientes' creada exitosamente")
-
-    if 'articulos' not in existing_tables:
-        # Crear tabla 'articulos'
-        cursor.execute("""
-            CREATE TABLE articulos (
-                id INT NOT NULL AUTO_INCREMENT,
-                descripcion VARCHAR(255) NOT NULL,
-                cantidad INT NOT NULL DEFAULT 0,
-                color VARCHAR(50) DEFAULT NULL,
-                costo DECIMAL(10,2) NOT NULL,
-                valor DECIMAL(10,2) NOT NULL,
-                PRIMARY KEY (id)
-            );
-        """)
-        print("Tabla 'articulos' creada exitosamente")
-
-    if 'pedidos' not in existing_tables:
-        # Crear tabla 'pedidos'
-        cursor.execute("""
-            CREATE TABLE pedidos (
-                id INT NOT NULL AUTO_INCREMENT,
-                cliente_id INT NOT NULL,
-                estado ENUM('Pendiente de Seña', 'En proceso', 'En entrega', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Pendiente de Seña',
-                costo DECIMAL(10,2) NOT NULL,
-                valor DECIMAL(10,2) NOT NULL,
-                fecha_de_inicio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                fecha_de_entrega DATETIME DEFAULT NULL,
-                PRIMARY KEY (id),
-                KEY cliente_id (cliente_id),
-                CONSTRAINT pedidos_ibfk_1 FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
-                CONSTRAINT pedidos_chk_1 CHECK (costo >= 0),
-                CONSTRAINT pedidos_chk_2 CHECK (valor >= 0)
-            );
-        """)
-        print("Tabla 'pedidos' creada exitosamente")
-
-    if 'articulos_vendidos' not in existing_tables:
-        # Crear tabla 'articulos_vendidos'
-        cursor.execute("""
-            CREATE TABLE articulos_vendidos (
-                id INT NOT NULL AUTO_INCREMENT,
-                articulo_id INT NOT NULL,
-                pedido_id INT NOT NULL,
-                cantidad INT NOT NULL,
-                costo_total DECIMAL(10,2) NOT NULL,
-                PRIMARY KEY (id),
-                KEY articulo_id (articulo_id),
-                KEY pedido_id (pedido_id),
-                CONSTRAINT articulos_vendidos_ibfk_1 FOREIGN KEY (articulo_id) REFERENCES articulos (id) ON DELETE CASCADE,
-                CONSTRAINT articulos_vendidos_ibfk_2 FOREIGN KEY (pedido_id) REFERENCES pedidos (id) ON DELETE CASCADE,
-                CONSTRAINT articulos_vendidos_chk_1 CHECK (cantidad > 0)
-            );
-        """)
-        print("Tabla 'articulos_vendidos' creada exitosamente")
-
-    if 'movimientos' not in existing_tables:
-        # Crear tabla 'movimientos'
-        cursor.execute("""
-            CREATE TABLE movimientos (
-                id INT NOT NULL AUTO_INCREMENT,
-                descripcion VARCHAR(255) NOT NULL,
-                movimiento ENUM('ingreso', 'egreso') NOT NULL,
-                id_pedido INT DEFAULT NULL,
-                fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                cantidad_dinero DECIMAL(10,2) NOT NULL,
-                PRIMARY KEY (id),
-                KEY id_pedido (id_pedido),
-                CONSTRAINT movimientos_ibfk_1 FOREIGN KEY (id_pedido) REFERENCES pedidos (id) ON DELETE SET NULL,
-                CONSTRAINT movimientos_chk_1 CHECK (cantidad_dinero > 0)
-            );
-        """)
-        print("Tabla 'movimientos' creada exitosamente")
-
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-    return "Base de datos creada exitosamente", 200
-    
 
 @app.route("/orders/delete/<int:order_id>", methods=["GET"])
 @login_required
