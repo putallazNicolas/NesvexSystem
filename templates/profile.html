@@ -1,34 +1,49 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Mi Perfil
+    Perfil
 {% endblock %}
 
 {% block main %}
-<div class="container mt-4">
-    <h2 class="mb-4">Cambiar Contraseña</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Cambiar Contraseña</h5>
+                </div>
+                <div class="card-body">
+                    {% if alert %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ alertMsg }}
+                    </div>
+                    {% endif %}
 
-    {% if alert %}
-    <div class="alert alert-danger" role="alert">
-        {{ alertMsg }}
+                    <form action="/profile" method="post">
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            <label for="current_password">Contraseña Actual</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            <label for="new_password">Nueva Contraseña</label>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <label for="confirm_password">Confirmar Nueva Contraseña</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-key"></i> Cambiar Contraseña
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
-
-    <form action="/profile" method="post">
-        <div class="mb-3">
-            <label for="current_password" class="form-label">Contraseña Actual</label>
-            <input type="password" class="form-control" id="current_password" name="current_password" required>
-        </div>
-        <div class="mb-3">
-            <label for="new_password" class="form-label">Nueva Contraseña</label>
-            <input type="password" class="form-control" id="new_password" name="new_password" required>
-        </div>
-        <div class="mb-3">
-            <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña</label>
-            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-        <a href="/" class="btn btn-secondary">Cancelar</a>
-    </form>
 </div>
 {% endblock %} 

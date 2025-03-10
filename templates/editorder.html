@@ -5,30 +5,57 @@
 {% endblock %}
 
 {% block main %}
-  <div class="container">
-    <h1 class="mb-4">Editar Pedido</h1>
-    <form method="POST" action="/orders/edit/info/{{ order.id }}" style="max-width: 700px;">
-      <!-- Selección de cliente -->
-      <div class="form-group">
-        <label for="cliente">Cliente</label>
-        <select class="form-control" id="cliente" name="cliente">
-          {% for cliente in clientes %}
-            <option value="{{ cliente.id }}" {% if cliente['id'] == order['cliente_id'] %}selected{% endif %}>{{ cliente.nombre }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <!-- Selector de fecha estimada de entrega -->
-      <div class="form-group">
-        <label for="fechaEntrega">Fecha Estimada de Entrega</label>
-        <input type="date" class="form-control" id="fechaEntrega" name="fechaEntrega" value="{{ order['fecha_de_entrega'].strftime('%Y-%m-%d') }}">
-      </div>
-      <!-- Totales del Pedido -->
-      <div class="form-group">
-        <label for="totalPrecioPedido">Precio Total del Pedido</label>
-        <input type="text" class="form-control" id="totalPrecioPedido" name="totalPrecioPedido" value="{{ order.valor }}">
-      </div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Editar Pedido #{{ order.id }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if alert %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ alertMsg }}
+                    </div>
+                    {% endif %}
 
-      <button type="submit" class="btn btn-success">Actualizar Pedido</button>
-    </form>
-  </div>
+                    <form method="POST" action="/orders/edit/info/{{ order.id }}">
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="cliente" name="cliente" required>
+                                <option value="">Seleccione un cliente</option>
+                                {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}" {% if cliente.id == order.cliente_id %}selected{% endif %}>
+                                    {{ cliente.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="cliente">Cliente</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="date" class="form-control" id="fechaEntrega" name="fechaEntrega" 
+                                   value="{{ order['fecha_de_entrega'].strftime('%Y-%m-%d') }}" required>
+                            <label for="fechaEntrega">Fecha de Entrega</label>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input type="number" class="form-control" id="totalPrecioPedido" name="totalPrecioPedido" 
+                                   value="{{ order.valor }}" step="0.01" min="0" required>
+                            <label for="totalPrecioPedido">Valor Total</label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <a href="/orders/see/{{ order.id }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
