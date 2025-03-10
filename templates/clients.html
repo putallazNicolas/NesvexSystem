@@ -5,52 +5,66 @@
 {% endblock %}
 
 {% block main %}
-<h1>Lista de Clientes</h1>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Clientes</h1>
+        <a href="/clients/add" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Añadir Cliente
+        </a>
+    </div>
 
-<a class="btn btn-outline-dark mb-3" type="submit" href="/clients/add">Añadir Cliente</a>
-
-<table class="table table-bordered">
-    <thead>
-        <tr class="table-active">
-            <th scope="col">Nombre</th>
-            <th scope="col">Contacto</th>
-            <th scope="col">Info Facturación</th>
-            <th scope="col">Compras</th>
-            <th scope="col">Notas</th>
-            <th scope="col">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for cliente in clientes %}
-        <tr>
-            <td class="align-middle">{{ cliente.nombre }}</td>
-            <td class="align-middle">
-                <strong>Teléfono:</strong> {{ cliente.telefono if cliente.telefono else '<em>Sin teléfono</em>'|safe }}<br>
-                <strong>Correo:</strong> {{ cliente.mail if cliente.mail else '<em>Sin correo</em>'|safe }}<br>
-                <strong>Instagram:</strong> {{ cliente.instagram if cliente.instagram else '<em>Sin Instagram</em>'|safe }}<br>
-                <strong>Facebook:</strong> {{ cliente.facebook if cliente.facebook else '<em>Sin Facebook</em>'|safe }}
-            </td>
-            <td class="align-middle">
-                <strong>Dirección:</strong> {{ cliente.direccion if cliente.direccion else '<em>Sin dirección</em>'|safe }}<br>
-                <strong>Razón Social:</strong> {{ cliente.razon_social if cliente.razon_social else '<em>Sin razón social</em>'|safe }}<br>
-                <strong>Condición IVA:</strong> {{ cliente.condicion_iva if cliente.condicion_iva else '<em>Sin condición IVA</em>'|safe }}<br>
-                <strong>CUIT:</strong> {{ cliente.cuit if cliente.cuit else '<em>Sin CUIT</em>'|safe }}
-            </td>
-            <td class="align-middle">{{ cliente.cantidad_compras if cliente.cantidad_compras else '<em>0</em>'|safe }}</td>
-            <td class="align-middle" style="max-width: 150px;">{{ cliente.notas if cliente.notas else '<em>Sin notas</em>'|safe }}</td>
-            <td class="align-middle">
-                <div class="d-grid gap-2">
-                    <a class="btn btn-primary" href="clients/edit/{{ cliente.id }}">Editar</a>
-                    <a class="btn btn-danger" href="clients/delete/{{ cliente.id }}">Eliminar</a>
-                </div>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="6" class="text-center"><em>No hay clientes registrados.</em></td>
-        </tr>
-        {% endfor %}
-    </tbody>    
-</table>
-
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="align-middle">Nombre</th>
+                            <th class="align-middle">Contacto</th>
+                            <th class="align-middle">Info Facturación</th>
+                            <th class="align-middle">Compras</th>
+                            <th class="align-middle">Notas</th>
+                            <th class="align-middle">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes %}
+                        <tr>
+                            <td class="align-middle">{{ cliente.nombre }}</td>
+                            <td class="align-middle">
+                                <strong>Teléfono:</strong> {{ cliente.telefono or '-' }}<br>
+                                <strong>Correo:</strong> {{ cliente.mail or '-' }}<br>
+                                <strong>Instagram:</strong> {{ cliente.instagram or '-' }}<br>
+                                <strong>Facebook:</strong> {{ cliente.facebook or '-' }}
+                            </td>
+                            <td class="align-middle">
+                                <strong>Dirección:</strong> {{ cliente.direccion or '-' }}<br>
+                                <strong>Razón Social:</strong> {{ cliente.razon_social or '-' }}<br>
+                                <strong>Condición IVA:</strong> {{ cliente.condicion_iva or '-' }}<br>
+                                <strong>CUIT:</strong> {{ cliente.cuit or '-' }}
+                            </td>
+                            <td class="align-middle">{{ cliente.cantidad_compras or '0' }}</td>
+                            <td class="align-middle" style="max-width: 150px;">{{ cliente.notas or '-' }}</td>
+                            <td class="align-middle">
+                                <div class="btn-group">
+                                    <a href="/clients/edit/{{ cliente.id }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="/clients/delete/{{ cliente.id }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este cliente?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay clientes registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

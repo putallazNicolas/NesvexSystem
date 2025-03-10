@@ -1,44 +1,64 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Articulos
+    Artículos
 {% endblock %}
 
 {% block main %}
-<h1>Lista de Articulos</h1>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Artículos</h1>
+        <a href="/articles/add" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Añadir Artículo
+        </a>
+    </div>
 
-<a class="btn btn-outline-dark mb-3" type="submit" href="/articles/add">Añadir Articulo</a>
-
-<table class="table table-bordered">
-    <thead>
-        <tr class="table-active">
-            <th scope="col">Descripcion</th>
-            <th scope="col">Stock</th>
-            <th scope="col">Color</th>
-            <th scope="col">Costo</th>
-            <th scope="col">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for articulo in articulos %}
-        <tr>
-            <td class="align-middle">{{ articulo.descripcion }}</td>
-            <td class="align-middle">{{ articulo.cantidad }}</td>
-            <td class="align-middle">{{ articulo.color }}</td>
-            <td class="align-middle">${{ articulo.costo }}</td>
-            <td class="align-middle">
-                <div class="d-grid gap-2">
-                    <a class="btn btn-primary" href="/articles/edit/{{ articulo.id }}">Editar</a>
-                    <a class="btn btn-danger" href="/articles/delete/{{ articulo.id }}">Eliminar</a>
-                </div>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="6">No hay artículos disponibles.</td>
-        </tr>
-        {% endfor %}
-    </tbody>    
-</table>
-
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="align-middle">Descripción</th>
+                            <th class="align-middle">Stock</th>
+                            <th class="align-middle">Color</th>
+                            <th class="align-middle">Costo</th>
+                            <th class="align-middle">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for articulo in articulos %}
+                        <tr>
+                            <td class="align-middle">{{ articulo.descripcion }}</td>
+                            <td class="align-middle">
+                                {% if articulo.cantidad <= 5 %}
+                                <span class="badge bg-danger">{{ articulo.cantidad }}</span>
+                                {% else %}
+                                <span class="badge bg-success">{{ articulo.cantidad }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">{{ articulo.color or '-' }}</td>
+                            <td class="align-middle">${{ "{:,.2f}".format(articulo.costo) }}</td>
+                            <td class="align-middle">
+                                <div class="btn-group">
+                                    <a href="/articles/edit/{{ articulo.id }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="/articles/delete/{{ articulo.id }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este artículo?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No hay artículos disponibles.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

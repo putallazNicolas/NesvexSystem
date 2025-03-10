@@ -5,98 +5,213 @@
 {% endblock %}
 
 {% block main %}
-<h1>Pedido</h1>
-<hr>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Pedido #{{ pedido["id"] }}</h1>
+        <div class="btn-group">
+            <a href="/orders/edit/info/{{ pedido['id'] }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar Pedido
+            </a>
+            <a href="/orders/delete/{{ pedido['id'] }}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este pedido?')">
+                <i class="fas fa-trash"></i> Eliminar Pedido
+            </a>
+        </div>
+    </div>
 
-<div class="card text-center mx-auto mb-3" style="max-width: 500px;">
-    {% if pedido["estado"] == "Pendiente de Seña" %}
-    <div class="alert alert-secondary" role="alert">
-        Pedido pendiente de seña - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
-    </div>
-    {% elif pedido["estado"] == "En proceso" %}
-    <div class="alert alert-warning" role="alert">
-        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido en proceso - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
-    </div>
-    {% elif pedido["estado"] == "En entrega" %}
-    <div class="alert alert-info" role="alert">
-        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido en entrega - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Siguiente</a>
-    </div>
-    {% elif pedido["estado"] == "Entregado" %}
-    <div class="alert alert-success" role="alert">
-        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido entregado - <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/next">Cancelar</a>
-    </div>
-    {% elif pedido["estado"] == "Cancelado" %}
-    <div class="alert alert-danger" role="alert">
-        <a class="alert-link" href="/orders/edit/state/{{ pedido['id'] }}/prev">Anterior</a> - Pedido cancelado
-    </div>
-    {% endif %}
-
-    <div class="card-body">
-        <div class="row justify-content-center">
-            <div class="">
+    <div class="row">
+        <!-- Información del Pedido -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Información del Pedido</h5>
+                </div>
                 <div class="card-body">
-                    <h4>Información del Pedido</h4>
-                    <div class="card-text"><strong>Inicio:</strong> {{ pedido["fecha_de_inicio"] }}</div>
-                    <div class="card-text"><strong>Entrega Estimada:</strong> {{ pedido["fecha_de_entrega"] }}</div>
-                    <div class="card-text"><strong>Costo Total:</strong> ${{ "{:,.2f}".format(pedido["costo"]) }}</div>
-                    <div class="card-text"><strong>Valor:</strong> ${{ "{:,.2f}".format(pedido["valor"]) }}</div>
-                    <a href="/orders/edit/info/{{ pedido['id'] }}" class="btn btn-primary mt-3">Editar Pedido</a>
-                    <a href="/orders/delete/{{ pedido['id'] }}" class="btn btn-danger mt-3">Eliminar Pedido</a>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <tbody>
+                                <tr>
+                                    <th class="align-middle">Estado:</th>
+                                    <td class="align-middle">
+                                        <div class="d-flex flex-column">
+                                            {% if pedido["estado"] == "Pendiente de Seña" %}
+                                            <span class="badge bg-secondary mb-2">Pendiente de Seña</span>
+                                            {% elif pedido["estado"] == "En proceso" %}
+                                            <span class="badge bg-warning mb-2">En proceso</span>
+                                            {% elif pedido["estado"] == "En entrega" %}
+                                            <span class="badge bg-info mb-2">En entrega</span>
+                                            {% elif pedido["estado"] == "Entregado" %}
+                                            <span class="badge bg-success mb-2">Entregado</span>
+                                            {% elif pedido["estado"] == "Cancelado" %}
+                                            <span class="badge bg-danger mb-2">Cancelado</span>
+                                            {% endif %}
+                                            <div class="btn-group" role="group">
+                                                {% if pedido["estado"] != "Pendiente de Seña" %}
+                                                <a href="/orders/edit/state/{{ pedido['id'] }}/prev" class="btn btn-sm btn-secondary" title="Volver al estado anterior">
+                                                    <i class="fas fa-undo"></i>
+                                                </a>
+                                                {% endif %}
+                                                {% if pedido["estado"] != "Cancelado" %}
+                                                <a href="/orders/edit/state/{{ pedido['id'] }}/next" class="btn btn-sm btn-primary" title="Avanzar al siguiente estado">
+                                                    {% if pedido["estado"] == "Pendiente de Seña" %}
+                                                    <i class="fas fa-check"></i> Seña
+                                                    {% elif pedido["estado"] == "En proceso" %}
+                                                    <i class="fas fa-truck"></i> Enviar
+                                                    {% elif pedido["estado"] == "En entrega" %}
+                                                    <i class="fas fa-check-double"></i> Entregar
+                                                    {% elif pedido["estado"] == "Entregado" %}
+                                                    <i class="fas fa-ban"></i> Cancelar
+                                                    {% endif %}
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="align-middle">Cliente:</th>
+                                    <td class="align-middle">{{ cliente["nombre"] }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="align-middle">Fecha Inicio:</th>
+                                    <td class="align-middle">{{ pedido["fecha_de_inicio"] }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="align-middle">Fecha Entrega:</th>
+                                    <td class="align-middle">{{ pedido["fecha_de_entrega"] }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="align-middle">Costo Total:</th>
+                                    <td class="align-middle">${{ "{:,.2f}".format(pedido["costo"]) }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="align-middle">Valor:</th>
+                                    <td class="align-middle">${{ "{:,.2f}".format(pedido["valor"]) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-
-<div class="card text-center mx-auto mb-3 col-auto" style="max-width: 500px;">
-    <div class="card-body">
-        <div class="row justify-content-center">
-            <div class="">
+        <!-- Información del Cliente -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Información del Cliente - {{ cliente["nombre"] }}</h5>
+                </div>
                 <div class="card-body">
-                    <h4>Información del Cliente</h4>
-                    <div class="card-text"><strong>Cliente:</strong> {{ cliente["nombre"] }}</div>
-                    <div class="card-text">Realizó {{ cliente["cantidad_compras"] }} compras</div>
-                    {% if cliente["notas"] %}"{{ cliente["notas"] }}"{% endif %}
-                    <hr>
-                    <h5>Información de Contacto</h5>
-                    <div class="card-text"><strong>Teléfono:</strong> {{ cliente["telefono"] }}</div>
-                    <div class="card-text"><strong>Correo:</strong> {{ cliente["mail"] }}</div>
-                    <div class="card-text"><strong>Instagram:</strong> {{ cliente["instagram"] }}</div>
-                    <div class="card-text"><strong>Facebook:</strong> {{ cliente["facebook"] }}</div>
-                    <hr>
-                    <h5>Información de Facturación</h5>
-                    <div class="card-text"><strong>Dirección:</strong> {{ cliente["direccion"] }}</div>
-                    <div class="card-text"><strong>Razón Social:</strong> {{ cliente["razon_social"] }}</div>
-                    <div class="card-text"><strong>Condición ante el IVA:</strong> {{ cliente["condicion_iva"] }}</div>
-                    <div class="card-text"><strong>CUIT:</strong> {{ cliente["cuit"] }}</div>
+                    <div class="row">
+                        <!-- Información de Contacto -->
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información de Contacto</h6>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <tbody>
+                                        <tr>
+                                            <th class="align-middle">Compras Realizadas:</th>
+                                            <td class="align-middle">{{ cliente["cantidad_compras"] }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">Teléfono:</th>
+                                            <td class="align-middle">{{ cliente["telefono"] or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">Correo:</th>
+                                            <td class="align-middle">{{ cliente["mail"] or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">Instagram:</th>
+                                            <td class="align-middle">{{ cliente["instagram"] or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">Facebook:</th>
+                                            <td class="align-middle">{{ cliente["facebook"] or '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Información de Facturación -->
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información de Facturación</h6>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <tbody>
+                                        <tr>
+                                            <th class="align-middle">Dirección:</th>
+                                            <td class="align-middle">{{ cliente["direccion"] or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">Razón Social:</th>
+                                            <td class="align-middle">{{ cliente["razon_social"] or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">Condición IVA:</th>
+                                            <td class="align-middle">{{ cliente["condicion_iva"] or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="align-middle">CUIT:</th>
+                                            <td class="align-middle">{{ cliente["cuit"] or '-' }}</td>
+                                        </tr>
+                                        {% if cliente["notas"] %}
+                                        <tr>
+                                            <th class="align-middle">Notas:</th>
+                                            <td class="align-middle">{{ cliente["notas"] }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="card text-center mx-auto mb-3 col-auto" style="max-width: 500px;">
-    <div class="card-body">
-        <div class="row justify-content-center">
-            <div class="">
+        <!-- Artículos del Pedido -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Artículos del Pedido</h5>
+                    <a href="/orders/{{ pedido['id'] }}/articles/add" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Agregar Artículo
+                    </a>
+                </div>
                 <div class="card-body">
-                    <h4>Articulos</h4>
-                    <a href="/orders/{{ pedido['id'] }}/articles/add" class="btn btn-primary mt-3">Agregar articulo</a>
-
-                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
-                    {% for articulo in articulos %}
-                    <div class="card-text"><strong>Articulo:</strong> {{ articulo["descripcion"] }}</div>
-                    {% if articulo["color"] %} 
-                    <div class="card-text"><strong>Color:</strong> {{ articulo["color"] }}</div>
-                    {% endif %}
-                    <div class="card-text"><strong>Cantidad:</strong> {{ articulo["cantidad_vendida"] }}</div>
-                    <div class="card-text"><strong>Costo Unitario:</strong> {{ articulo["costo"] }}</div>
-                    <div class="card-text"><strong>Costo Total:</strong> ${{ articulo["costo"] * articulo["cantidad_vendida"] }}</div>
-                    <a href="/orders/article/delete/{{ articulo['articulo_vendido_id'] }}" class="btn btn-danger mt-3">Eliminar Articulo</a>
-                    <hr style="border: 1px solid #000; width: 80%; margin: 20px auto;">
-                    {% endfor %}
-                    
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="align-middle">Descripción</th>
+                                    <th class="align-middle">Color</th>
+                                    <th class="align-middle">Cantidad</th>
+                                    <th class="align-middle">Costo Unitario</th>
+                                    <th class="align-middle">Costo Total</th>
+                                    <th class="align-middle">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for articulo in articulos %}
+                                <tr>
+                                    <td class="align-middle">{{ articulo["descripcion"] }}</td>
+                                    <td class="align-middle">{{ articulo["color"] or '-' }}</td>
+                                    <td class="align-middle">{{ articulo["cantidad_vendida"] }}</td>
+                                    <td class="align-middle">${{ "{:,.2f}".format(articulo["costo"]) }}</td>
+                                    <td class="align-middle">${{ "{:,.2f}".format(articulo["costo"] * articulo["cantidad_vendida"]) }}</td>
+                                    <td class="align-middle">
+                                        <a href="/orders/article/delete/{{ articulo['articulo_vendido_id'] }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('¿Estás seguro de que deseas eliminar este artículo?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
