@@ -23,7 +23,7 @@ Sistema web para la gestión de pedidos, clientes, artículos y movimientos fina
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/NesvexSystem.git
+git clone https://github.com/putallazNicolas/NesvexSystem.git
 cd NesvexSystem
 ```
 
@@ -43,7 +43,7 @@ pip install -r requirements.txt
 DB_HOST=localhost
 DB_USER=tu_usuario
 DB_PASSWORD=tu_contraseña
-DB_NAME=nesvex_system
+DB_NAME=el_nombre_de_tu_base_de_datos
 DB_URL=mysql://usuario:contraseña@host:puerto/nombre_db
 FLASK_SECRET_KEY=tu_clave_secreta
 MAX_USERS=10  # Opcional: límite de usuarios
@@ -109,4 +109,4 @@ Nicolás Putallaz - nfputallaz@gmail.com
 
 Si te interesa usar el sistema para tu negocio, no dudes en contactarme!
 
-Link del Proyecto: [https://github.com/tu-usuario/NesvexSystem](https://github.com/tu-usuario/NesvexSystem)
+Link del Proyecto: [https://github.com/tu-usuario/NesvexSystem](https://github.com/putallazNicolas/NesvexSystem.git)
