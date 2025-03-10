@@ -5,51 +5,64 @@
 {% endblock %}
 
 {% block main %}
-    <div class="container mt-4">
-        <h2>Agregar Movimiento de Dinero</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Agregar Nuevo Movimiento</h5>
+                </div>
+                <div class="card-body">
+                    {% if alert %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ alertMsg }}
+                    </div>
+                    {% endif %}
 
-        {% if alert %}
-        <div class="alert alert-danger" role="alert">
-            {{ alertMsg }}
-        </div>
-        {% endif %}
+                    <form action="/movements/add" method="post">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ descripcion }}" required>
+                            <label for="descripcion">Descripción del Movimiento</label>
+                        </div>
 
-        <form action="/movements/add" method="post" class="mt-4">
-            <div class="mb-3">
-                <label for="descripcion" class="form-label">Descripción</label>
-                <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ descripcion }}" required>
-            </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="tipo" name="tipo" required>
+                                <option value="">Seleccione el tipo de movimiento</option>
+                                <option value="ingreso" {% if tipo == 'ingreso' %}selected{% endif %}>Ingreso</option>
+                                <option value="egreso" {% if tipo == 'egreso' %}selected{% endif %}>Egreso</option>
+                            </select>
+                            <label for="tipo">Tipo de Movimiento</label>
+                        </div>
 
-            <div class="mb-3">
-                <label for="tipo" class="form-label">Tipo de Movimiento</label>
-                <select class="form-select" id="tipo" name="tipo" required>
-                    <option value="ingreso" {% if tipo == 'ingreso' %}selected{% endif %}>Ingreso</option>
-                    <option value="egreso" {% if tipo == 'egreso' %}selected{% endif %}>Egreso</option>
-                </select>
-            </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="pedido" name="pedido">
+                                <option value="">Seleccione un pedido (opcional)</option>
+                                {% for pedido in pedidos %}
+                                <option value="{{ pedido.id }}" {% if pedido.id|string == pedido %}selected{% endif %}>
+                                    Pedido #{{ pedido.id }} - {{ pedido.cliente_nombre }} ({{ pedido.estado }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="pedido">Pedido Relacionado</label>
+                        </div>
 
-            <div class="mb-3">
-                <label for="pedido" class="form-label">Pedido Asociado (Opcional)</label>
-                <select class="form-select" id="pedido" name="pedido">
-                    <option value="">Ninguno</option>
-                    {% for pedido_item in pedidos %}
-                    <option value="{{ pedido_item.id }}" {% if pedido == pedido_item.id|string %}selected{% endif %}>
-                        Pedido #{{ pedido_item.id }} - {{ pedido_item.cliente_nombre }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+                        <div class="form-floating mb-4">
+                            <input type="number" class="form-control" id="monto" name="monto" value="{{ monto }}" step="0.01" min="0.01" required>
+                            <label for="monto">Monto</label>
+                        </div>
 
-            <div class="mb-3">
-                <label for="monto" class="form-label">Monto</label>
-                <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" class="form-control" id="monto" name="monto" value="{{ monto }}" required min="0">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Movimiento
+                            </button>
+                            <a href="/movements" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-primary">Guardar Movimiento</button>
-            <a href="/movements" class="btn btn-secondary">Cancelar</a>
-        </form>
+        </div>
     </div>
+</div>
 {% endblock %} 

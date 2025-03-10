@@ -1,165 +1,229 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Añadir Pedido
+    Agregar Pedido
 {% endblock %}
 
 {% block main %}
-  <div class="container">
-    <h1 class="mb-4">Crear Nuevo Pedido</h1>
-    <!-- El formulario se envía a una ruta definida en Flask -->
-    <form method="POST" action="/orders/add" style="max-width: 700px;">
-      <!-- Selección de cliente -->
-      <div class="form-group">
-        <label for="cliente">Cliente</label>
-        <select class="form-control" id="cliente" name="cliente">
-          {% for cliente in clientes %}
-            <option value="{{ cliente.id }}" {% if cliente_id == cliente.id|string %}selected{% endif %}>
-              {{ cliente.nombre }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <!-- Selector de fecha estimada de entrega -->
-      <div class="form-group">
-        <label for="fechaEntrega">Fecha Estimada de Entrega</label>
-        <input type="date" class="form-control" id="fechaEntrega" name="fechaEntrega" value="{{ fecha_entrega }}">
-      </div>
-      <!-- Sección de artículos -->
-      <div class="form-group mt-4">
-        <h4>Artículos</h4>
-        <div id="articulos-container">
-          <!-- Los artículos se agregarán aquí dinámicamente -->
-          {% if articulos_seleccionados %}
-            {% for articulo in articulos_seleccionados %}
-              <div class="articulo-row mb-3">
-                <div class="row">
-                  <div class="col-md-6">
-                    <select class="form-control articulo-select" name="articulos[{{ loop.index0 }}][id]">
-                      {% for art in articulos %}
-                        <option value="{{ art.id }}" {% if articulo.id == art.id|string %}selected{% endif %}>
-                          {{ art.descripcion }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="col-md-4">
-                    <input type="number" class="form-control cantidad-input" name="articulos[{{ loop.index0 }}][cantidad]" 
-                           value="{{ articulo.cantidad }}" min="1" placeholder="Cantidad">
-                  </div>
-                  <div class="col-md-2">
-                    <button type="button" class="btn btn-danger remove-articulo">X</button>
-                  </div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Agregar Nuevo Pedido</h5>
                 </div>
-              </div>
-            {% endfor %}
-          {% endif %}
-        </div>
-        <button type="button" class="btn btn-secondary mt-2" id="agregar-articulo">Agregar Artículo</button>
-      </div>
-      <!-- Totales del Pedido -->
-      <div class="form-group mt-4">
-        <div class="row">
-          <div class="col-md-6">
-            <label for="totalCostoPedido">Costo Total</label>
-            <input type="text" class="form-control" id="totalCostoPedido" name="totalCostoPedido" value="{{ total_costo }}" readonly>
-          </div>
-          <div class="col-md-6">
-            <label for="totalPrecioPedido">Precio Total</label>
-            <input type="text" class="form-control" id="totalPrecioPedido" name="totalPrecioPedido" value="{{ total_precio }}">
-          </div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-success mt-4">Crear Pedido</button>
-    </form>
-  </div>
+                <div class="card-body">
+                    {% if alert %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ alertMsg }}
+                    </div>
+                    {% endif %}
 
-  <!-- Template para nuevas filas de artículos -->
-  <template id="articulo-template">
-    <div class="articulo-row mb-3">
-      <div class="row">
-        <div class="col-md-6">
-          <select class="form-control articulo-select" name="articulos[INDEX][id]">
-            {% for articulo in articulos %}
-              <option value="{{ articulo.id }}">{{ articulo.descripcion }}</option>
-            {% endfor %}
-          </select>
+                    <form action="/orders/add" method="post">
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="cliente" name="cliente" required>
+                                <option value="">Seleccione un cliente</option>
+                                {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}" {% if cliente_id == cliente.id %}selected{% endif %}>
+                                    {{ cliente.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="cliente">Cliente</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="date" class="form-control" id="fechaEntrega" name="fechaEntrega" 
+                                   value="{{ fecha_entrega }}" required>
+                            <label for="fechaEntrega">Fecha de Entrega</label>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">Artículos del Pedido</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="articulos-container">
+                                    {% if articulos_seleccionados %}
+                                        {% for articulo in articulos_seleccionados %}
+                                        <div class="articulo-item mb-3">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-floating mb-3">
+                                                        <select class="form-select articulo-select" name="articulos[{{ loop.index0 }}][id]" required>
+                                                            <option value="">Seleccione un artículo</option>
+                                                            {% for art in articulos %}
+                                                            <option value="{{ art.id }}" {% if art.id == articulo.id %}selected{% endif %}>
+                                                                {{ art.descripcion }} (Stock: {{ art.cantidad }})
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <label>Artículo</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number" class="form-control cantidad-input" 
+                                                               name="articulos[{{ loop.index0 }}][cantidad]" 
+                                                               value="{{ articulo.cantidad }}" min="1" required>
+                                                        <label>Cantidad</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number" class="form-control costo-input" 
+                                                               name="articulos[{{ loop.index0 }}][costo_total]" 
+                                                               value="{{ articulo.costo_total }}" step="0.01" min="0" required>
+                                                        <label>Costo Total</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-danger btn-sm eliminar-articulo">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="articulo-item mb-3">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-floating mb-3">
+                                                        <select class="form-select articulo-select" name="articulos[0][id]" required>
+                                                            <option value="">Seleccione un artículo</option>
+                                                            {% for articulo in articulos %}
+                                                            <option value="{{ articulo.id }}">
+                                                                {{ articulo.descripcion }} (Stock: {{ articulo.cantidad }})
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <label>Artículo</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number" class="form-control cantidad-input" 
+                                                               name="articulos[0][cantidad]" min="1" required>
+                                                        <label>Cantidad</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number" class="form-control costo-input" 
+                                                               name="articulos[0][costo_total]" step="0.01" min="0" required>
+                                                        <label>Costo Total</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-danger btn-sm eliminar-articulo">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="button" class="btn btn-success btn-sm" id="agregar-articulo">
+                                    <i class="fas fa-plus"></i> Agregar Artículo
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="number" class="form-control" id="totalCostoPedido" name="totalCostoPedido" 
+                                           value="{{ total_costo }}" step="0.01" min="0" required>
+                                    <label for="totalCostoPedido">Costo Total</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-4">
+                                    <input type="number" class="form-control" id="totalPrecioPedido" name="totalPrecioPedido" 
+                                           value="{{ total_precio }}" step="0.01" min="0" required>
+                                    <label for="totalPrecioPedido">Precio Total</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Pedido
+                            </button>
+                            <a href="/orders" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4">
-          <input type="number" class="form-control cantidad-input" name="articulos[INDEX][cantidad]" min="1" placeholder="Cantidad">
-        </div>
-        <div class="col-md-2">
-          <button type="button" class="btn btn-danger remove-articulo">X</button>
-        </div>
-      </div>
     </div>
-  </template>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const container = document.getElementById('articulos-container');
-      const template = document.getElementById('articulo-template');
-      let articuloCount = {{ articulos_seleccionados|length if articulos_seleccionados else 0 }};
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('articulos-container');
+    const agregarBtn = document.getElementById('agregar-articulo');
+    let contador = container.children.length;
 
-      // Función para agregar un nuevo artículo
-      document.getElementById('agregar-articulo').addEventListener('click', function() {
-        const content = template.content.cloneNode(true);
-        // Reemplazar INDEX con el contador actual
-        const elements = content.querySelectorAll('[name*="INDEX"]');
-        elements.forEach(element => {
-          element.name = element.name.replace('INDEX', articuloCount);
+    // Función para actualizar los índices de los campos
+    function actualizarIndices() {
+        const items = container.getElementsByClassName('articulo-item');
+        Array.from(items).forEach((item, index) => {
+            const inputs = item.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+            });
         });
-        
-        container.appendChild(content);
-        articuloCount++;
-        
-        // Agregar evento para eliminar artículo
-        const newRow = container.lastElementChild;
-        newRow.querySelector('.remove-articulo').addEventListener('click', function() {
-          newRow.remove();
-          actualizarTotales();
-        });
-        
-        // Agregar eventos para actualizar totales
-        agregarEventosActualizacion(newRow);
-      });
+    }
 
-      // Función para actualizar totales
-      function actualizarTotales() {
-        let costoTotal = 0;
-        const filas = container.querySelectorAll('.articulo-row');
+    // Agregar nuevo artículo
+    agregarBtn.addEventListener('click', function() {
+        const template = container.children[0].cloneNode(true);
+        const inputs = template.querySelectorAll('input, select');
         
-        filas.forEach(fila => {
-          const cantidad = parseInt(fila.querySelector('.cantidad-input').value) || 0;
-          const articuloId = fila.querySelector('.articulo-select').value;
-          const articulo = {{ articulos|tojson|safe }}.find(a => a.id == articuloId);
-          
-          if (articulo && cantidad) {
-            costoTotal += articulo.costo * cantidad;
-          }
+        inputs.forEach(input => {
+            input.value = '';
+            input.name = input.name.replace(/\[\d+\]/, `[${contador}]`);
         });
-        
-        document.getElementById('totalCostoPedido').value = costoTotal.toFixed(2);
-      }
 
-      // Función para agregar eventos de actualización a una fila
-      function agregarEventosActualizacion(fila) {
-        const cantidad = fila.querySelector('.cantidad-input');
-        const select = fila.querySelector('.articulo-select');
-        
-        cantidad.addEventListener('input', actualizarTotales);
-        select.addEventListener('change', actualizarTotales);
-      }
-
-      // Agregar eventos a las filas existentes
-      document.querySelectorAll('.articulo-row').forEach(fila => {
-        agregarEventosActualizacion(fila);
-        
-        fila.querySelector('.remove-articulo').addEventListener('click', function() {
-          fila.remove();
-          actualizarTotales();
-        });
-      });
+        container.appendChild(template);
+        contador++;
     });
-  </script>
+
+    // Eliminar artículo
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.eliminar-articulo')) {
+            if (container.children.length > 1) {
+                e.target.closest('.articulo-item').remove();
+                actualizarIndices();
+            }
+        }
+    });
+
+    // Calcular costos
+    container.addEventListener('change', function(e) {
+        if (e.target.classList.contains('articulo-select') || e.target.classList.contains('cantidad-input')) {
+            const item = e.target.closest('.articulo-item');
+            const select = item.querySelector('.articulo-select');
+            const cantidad = item.querySelector('.cantidad-input');
+            const costo = item.querySelector('.costo-input');
+            
+            if (select.value && cantidad.value) {
+                const articulo = {{ articulos|tojson|safe }}.find(a => a.id == select.value);
+                if (articulo) {
+                    costo.value = (articulo.costo * cantidad.value).toFixed(2);
+                    calcularTotales();
+                }
+            }
+        }
+    });
+
+    // Calcular totales
+    function calcularTotales() {
+        const costos = Array.from(container.querySelectorAll('.costo-input'))
+            .map(input => parseFloat(input.value) || 0);
+        const totalCosto = costos.reduce((a, b) => a + b, 0);
+        document.getElementById('totalCostoPedido').value = totalCosto.toFixed(2);
+    }
+});
+</script>
 {% endblock %}

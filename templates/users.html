@@ -32,13 +32,13 @@
                     <td>{{ user.id }}</td>
                     <td>{{ user.username }}</td>
                     <td class="text-center">
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="/users/edit/{{ user.username }}" class="btn btn-warning btn-sm">
-                                <i class="fas fa-edit"></i> Editar
+                        <div class="btn-group">
+                            <a href="/users/edit/{{ user.username }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
                             </a>
                             {% if user.id != 1 %}
-                            <a href="/users/delete/{{ user.id }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">
-                                <i class="fas fa-trash"></i> Eliminar
+                            <a href="/users/delete/{{ user.id }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">
+                                <i class="fas fa-trash"></i>
                             </a>
                             {% endif %}
                         </div>

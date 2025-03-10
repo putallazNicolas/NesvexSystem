@@ -1,67 +1,108 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Añadir Cliente
+    Agregar Cliente
 {% endblock %}
 
 {% block main %}
-    <form action="/clients/add" method="post">
-        <h2>Añadir un cliente</h2>
-        <p><small>* Significa obligatorio</small></p>
-        <div class="row justify-content-center">
-            <div class="col">
-                <div class="form-floating mb-3">
-                    <input maxlength="30" autocomplete="off" autofocus class="form-control" name="nombre" id="nombre" placeholder="Nombre*" type="text">
-                    <label for="nombre">Nombre*</label>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Agregar Nuevo Cliente</h5>
                 </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ telefono }}" maxlength="30" autocomplete="off" class="form-control" name="telefono" id="telefono" placeholder="Teléfono" type="text">
-                    <label for="telefono">Teléfono</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ mail }}" maxlength="30" autocomplete="off" class="form-control" name="mail" id="mail" placeholder="Correo" type="email">
-                    <label for="mail">Correo</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ ig }}" maxlength="30" autocomplete="off" class="form-control" name="ig" id="ig" placeholder="Instagram" type="text">
-                    <label for="ig">Instagram</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ fb }}" maxlength="30" autocomplete="off" class="form-control" name="fb" id="fb" placeholder="Facebook" type="text">
-                    <label for="fb">Facebook</label>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-floating mb-3">
-                    <input value="{{ direccion }}" maxlength="30" autocomplete="off" class="form-control" name="direccion" id="direccion" placeholder="Dirección" type="text">
-                    <label for="direccion">Dirección</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ razon }}" maxlength="30" autocomplete="off" class="form-control" name="razon" id="razon" placeholder="Razón Social" type="text">
-                    <label for="razon">Razón Social</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ condicion }}" maxlength="30" autocomplete="off" class="form-control" name="condicion" id="condicion" placeholder="Condición IVA" type="text">
-                    <label for="condicion">Condición IVA</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ cuit }}" maxlength="30" autocomplete="off" class="form-control" name="cuit" id="cuit" placeholder="CUIT" type="text">
-                    <label for="cuit">CUIT</label>
-                </div>
-            </div>
-            <div class="col d-flex justify-content-center" style="height: 300px;">
-                <div class="form-floating" style="width: 100%;">
-                    <textarea maxlength="255" 
-                              autocomplete="off" 
-                              class="form-control" 
-                              name="notas" 
-                              id="notas" 
-                              placeholder="Notas" 
-                              style="height: 350px; width: 100%; resize: none;">{{ notas }}</textarea>
-                    <label for="notas">Notas</label>
+                <div class="card-body">
+                    {% if alert %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ alertMsg }}
+                    </div>
+                    {% endif %}
+
+                    <form action="/clients/add" method="post">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            <label for="nombre">Nombre del Cliente</label>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="tel" class="form-control" id="telefono" name="telefono">
+                                    <label for="telefono">Teléfono</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="mail" name="mail">
+                                    <label for="mail">Correo Electrónico</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="ig" name="ig">
+                                    <label for="ig">Instagram</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="fb" name="fb">
+                                    <label for="fb">Facebook</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="direccion" name="direccion">
+                            <label for="direccion">Dirección</label>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="razon" name="razon">
+                                    <label for="razon">Razón Social</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="cuit" name="cuit" required>
+                                    <label for="cuit">CUIT</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="condicion" name="condicion" required>
+                                <option value="">Seleccione una condición</option>
+                                <option value="Consumidor Final">Consumidor Final</option>
+                                <option value="Responsable Inscripto">Responsable Inscripto</option>
+                                <option value="Monotributista">Monotributista</option>
+                                <option value="Exento">Exento</option>
+                            </select>
+                            <label for="condicion">Condición IVA</label>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <textarea class="form-control w-100" id="notas" name="notas" style="height: 100px; width: 100%;"></textarea>
+                            <label for="notas">Notas Adicionales</label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cliente
+                            </button>
+                            <a href="/clients" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-        <button class="btn btn-outline-dark" type="submit">Añadir</button>
-    </form>
+    </div>
+</div>
 {% endblock %}

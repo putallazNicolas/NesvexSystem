@@ -1,33 +1,62 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Añadir Articulo
+    Agregar Artículo
 {% endblock %}
 
 {% block main %}
-    <form action="/articles/add" method="post" style="max-width: 400px;">
-        <h2>Añadir un articulo</h2>
-        <p><small>* Significa obligatorio</small></p>
-        <div class="row justify-content-center">
-            <div class="col">
-                <div class="form-floating mb-3">
-                    <input value="{{ descripcion }}" maxlength="30" autocomplete="off" autofocus class="form-control" name="descripcion" id="descripcion" placeholder="Descripcion*" type="text">
-                    <label for="descripcion">Descripcion*</label>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Agregar Nuevo Artículo</h5>
                 </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ cantidad }}" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" autofocus class="form-control" name="cantidad" id="cantidad" placeholder="Stock Actual*" type="number">
-                    <label for="cantidad">Stock Actual*</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ color }}" maxlength="15" autocomplete="off" class="form-control" name="color" id="color" placeholder="Color" type="text">
-                    <label for="color">Color</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input value="{{ costo }}" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==10) return false;" autocomplete="off" class="form-control" name="costo" id="costo" placeholder="Costo*" type="number">
-                    <label for="costo">Costo*</label>
+                <div class="card-body">
+                    {% if alert %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ alertMsg }}
+                    </div>
+                    {% endif %}
+
+                    <form action="/articles/add" method="post">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="descripcion" name="descripcion" required>
+                            <label for="descripcion">Descripción del Artículo</label>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="number" class="form-control" id="cantidad" name="cantidad" min="0" required>
+                                    <label for="cantidad">Cantidad en Stock</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="color" name="color">
+                                    <label for="color">Color</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input type="number" class="form-control" id="costo" name="costo" step="0.01" min="0" required>
+                            <label for="costo">Costo</label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Artículo
+                            </button>
+                            <a href="/articles" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-        <button class="btn btn-outline-dark" type="submit">Añadir</button>
-    </form>
+    </div>
+</div>
 {% endblock %}

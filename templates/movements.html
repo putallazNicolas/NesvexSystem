@@ -21,41 +21,41 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Fecha</th>
-                        <th>Descripción</th>
-                        <th>Tipo</th>
-                        <th>Pedido ID</th>
-                        <th>Monto</th>
-                        <th>Acciones</th>
+                        <th class="align-middle">Fecha</th>
+                        <th class="align-middle">Descripción</th>
+                        <th class="align-middle">Tipo</th>
+                        <th class="align-middle">Pedido ID</th>
+                        <th class="align-middle">Monto</th>
+                        <th class="align-middle">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for movimiento in movimientos %}
                     <tr>
-                        <td>{{ movimiento.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
-                        <td>{{ movimiento.descripcion }}</td>
-                        <td>
-                            {% if movimiento.movimiento == 'ingreso' %}
-                            <span class="badge bg-success">Ingreso</span>
+                        <td class="align-middle">{{ movimiento.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="align-middle">{{ movimiento.descripcion }}</td>
+                        <td class="align-middle">
+                            {% if movimiento.movimiento == "ingreso" %}
+                            <span class="badge bg-success px-3 py-2 fs-6">Ingreso</span>
                             {% else %}
-                            <span class="badge bg-danger">Egreso</span>
+                            <span class="badge bg-danger px-3 py-2 fs-6">Egreso</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="align-middle">
                             {% if movimiento.id_pedido %}
                             <a href="/orders/see/{{ movimiento.id_pedido }}">{{ movimiento.id_pedido }}</a>
                             {% else %}
                             -
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="align-middle">
                             {% if movimiento.movimiento == 'ingreso' %}
                             <span class="text-success">+${{ "{:,.2f}".format(movimiento.cantidad_dinero) }}</span>
                             {% else %}
                             <span class="text-danger">-${{ "{:,.2f}".format(movimiento.cantidad_dinero) }}</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="align-middle">
                             <a href="/movements/delete/{{ movimiento.id }}" class="btn btn-danger">Eliminar</a>
                         </td>
                     </tr>
@@ -63,15 +63,15 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="4" class="text-end"><strong>Balance Total:</strong></td>
-                        <td>
+                        <td colspan="4" class="text-end align-middle"><strong>Balance Total:</strong></td>
+                        <td class="align-middle">
                             {% if balance >= 0 %}
                             <span class="text-success">+${{ "{:,.2f}".format(balance) }}</span>
                             {% else %}
                             <span class="text-danger">-${{ "{:,.2f}".format(-balance) }}</span>
                             {% endif %}
                         </td>
-                        <td></td>
+                        <td class="align-middle"></td>
                     </tr>
                 </tfoot>
             </table>
