@@ -32,9 +32,9 @@
                             <td class="align-middle">{{ articulo.descripcion }}</td>
                             <td class="align-middle">
                                 {% if articulo.cantidad <= 5 %}
-                                <span class="badge bg-danger">{{ articulo.cantidad }}</span>
+                                <span class="badge bg-danger px-3 py-2 fs-6">{{ articulo.cantidad }}</span>
                                 {% else %}
-                                <span class="badge bg-success">{{ articulo.cantidad }}</span>
+                                <span class="badge bg-success px-3 py-2 fs-6">{{ articulo.cantidad }}</span>
                                 {% endif %}
                             </td>
                             <td class="align-middle">{{ articulo.color or '-' }}</td>

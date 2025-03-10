@@ -34,15 +34,15 @@
                                     <td class="align-middle">
                                         <div class="d-flex flex-column">
                                             {% if pedido["estado"] == "Pendiente de Seña" %}
-                                            <span class="badge bg-secondary mb-2">Pendiente de Seña</span>
+                                            <span class="badge bg-secondary px-3 py-2 fs-6 mb-2">Pendiente de Seña</span>
                                             {% elif pedido["estado"] == "En proceso" %}
-                                            <span class="badge bg-warning mb-2">En proceso</span>
+                                            <span class="badge bg-warning px-3 py-2 fs-6 mb-2">En proceso</span>
                                             {% elif pedido["estado"] == "En entrega" %}
-                                            <span class="badge bg-info mb-2">En entrega</span>
+                                            <span class="badge bg-info px-3 py-2 fs-6 mb-2">En entrega</span>
                                             {% elif pedido["estado"] == "Entregado" %}
-                                            <span class="badge bg-success mb-2">Entregado</span>
-                                            {% elif pedido["estado"] == "Cancelado" %}
-                                            <span class="badge bg-danger mb-2">Cancelado</span>
+                                            <span class="badge bg-success px-3 py-2 fs-6 mb-2">Entregado</span>
+                                            {% else %}
+                                            <span class="badge bg-danger px-3 py-2 fs-6 mb-2">Cancelado</span>
                                             {% endif %}
                                             <div class="btn-group" role="group">
                                                 {% if pedido["estado"] != "Pendiente de Seña" %}
