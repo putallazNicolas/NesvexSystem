@@ -1,116 +1,112 @@
-# Sistema de Gestión
+# Nesvex System - Sistema de Gestión de Pedidos
 
-Sistema de gestión empresarial, que permite administrar pedidos, clientes, inventario y finanzas.
+Sistema web para la gestión de pedidos, clientes, artículos y movimientos financieros de un negocio de diseño visual.
 
-## Características Principales
+## Características
 
-### Panel de Control
-- Vista general del estado financiero (ingresos, egresos y balance)
-- Estadísticas de pedidos en tiempo real
-- Últimos movimientos financieros
-- Pedidos pendientes
-- Alertas de stock bajo
-- Ranking de mejores clientes
+- 🔐 Sistema de autenticación seguro con sesiones únicas por dispositivo
+- 👥 Gestión de usuarios con roles de administrador
+- 👥 Gestión de clientes con información detallada
+- 📦 Control de inventario de artículos
+- 🛍️ Gestión de pedidos con estados y seguimiento
+- 💰 Control de movimientos financieros (ingresos/egresos)
+- 📊 Dashboard con estadísticas y alertas
+- ⚙️ Configuración personalizable
 
-### Gestión de Pedidos
-- Creación y seguimiento de pedidos
-- Estados del pedido:
-  - Pendiente de Seña
-  - En proceso
-  - En entrega
-  - Entregado
-  - Cancelado
-- Asociación automática con clientes
-- Cálculo automático de costos y precios
-- Registro automático de movimientos financieros al cambiar estados
+## Requisitos
 
-### Gestión de Clientes
-- Base de datos completa de clientes
-- Registro de datos de contacto
-- Historial de pedidos por cliente
-- Seguimiento de compras totales
-- Información fiscal (CUIT, condición IVA)
+- Python 3.8 o superior
+- MySQL 5.7 o superior
+- pip (gestor de paquetes de Python)
 
-### Control de Inventario
-- Gestión de artículos y stock
-- Alertas de stock bajo
-- Registro de costos y precios
-- Seguimiento de artículos vendidos
+## Instalación
 
-### Control Financiero
-- Registro detallado de ingresos y egresos
-- Vinculación de movimientos con pedidos
-- Balance general
-- Historial de transacciones
-- Reportes financieros en tiempo real
-
-## Requisitos Técnicos
-
-### Dependencias Principales
-- Python 3.x
-- Flask
-- MySQL
-- Bootstrap 5
-- Font Awesome
-
-### Configuración del Entorno
-1. Crear un archivo `.env` en la raíz del proyecto con las siguientes variables:
-```
-DB_HOST=tu_host
-DB_USER=tu_usuario
-DB_PASSWORD=tu_contraseña
-DB_NAME=nombre_base_de_datos
-FLASK_SECRET_KEY=tu_clave_secreta
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/tu-usuario/NesvexSystem.git
+cd NesvexSystem
 ```
 
-2. Instalar las dependencias:
+2. Crear y activar un entorno virtual:
+```bash
+python -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+```
+
+3. Instalar dependencias:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Inicializar la base de datos:
+4. Crear archivo `.env` con las siguientes variables:
+```env
+DB_HOST=localhost
+DB_USER=tu_usuario
+DB_PASSWORD=tu_contraseña
+DB_NAME=nesvex_system
+DB_URL=mysql://usuario:contraseña@host:puerto/nombre_db
+FLASK_SECRET_KEY=tu_clave_secreta
+MAX_USERS=10  # Opcional: límite de usuarios
+```
+
+5. Iniciar la aplicación:
 ```bash
 python app.py
 ```
 
 ## Estructura de la Base de Datos
 
-### Tablas Principales
-- `usuarios`: Gestión de accesos al sistema
+El sistema utiliza las siguientes tablas:
+
+- `usuarios`: Gestión de usuarios y autenticación
 - `clientes`: Información de clientes
 - `articulos`: Inventario de productos
-- `pedidos`: Registro de pedidos
-- `articulos_vendidos`: Detalle de artículos por pedido
-- `movimientos`: Registro financiero
+- `pedidos`: Gestión de pedidos
+- `articulos_vendidos`: Detalle de artículos en pedidos
+- `movimientos`: Registro de transacciones financieras
+- `configuracion`: Ajustes del sistema
 
-## Uso del Sistema
+## Características de Seguridad
 
-1. **Acceso**
-   - Ingresar con usuario y contraseña
-   - Panel de control como página principal
+- Autenticación mediante hash de contraseñas
+- Sesiones únicas por dispositivo
+- Protección contra inyección SQL
+- Validación de datos de entrada
+- Control de acceso basado en roles
 
-2. **Gestión de Pedidos**
-   - Crear nuevo pedido
-   - Seleccionar cliente
-   - Agregar artículos
-   - Gestionar estado del pedido
+## Uso
 
-3. **Control Financiero**
-   - Registro automático al procesar pedidos
-   - Ingreso manual de otros movimientos
-   - Consulta de balance y movimientos
+1. Acceder a `http://localhost:5000`
+2. Iniciar sesión con las credenciales por defecto:
+   - Usuario: admin
+   - Contraseña: admin
+3. Cambiar la contraseña del administrador en la primera sesión
 
-4. **Inventario**
-   - Agregar nuevos artículos
-   - Actualizar stock
-   - Monitorear niveles de inventario
+## Despliegue
 
-## Seguridad
-- Autenticación requerida para todas las operaciones
-- Contraseñas encriptadas
-- Validación de datos en todas las operaciones
-- Protección contra SQL injection
+La aplicación está configurada para desplegarse en servicios como Railway. Para desplegar:
+
+1. Configurar las variables de entorno en la plataforma
+2. Conectar con el repositorio Git
+3. Configurar la base de datos MySQL
+4. Desplegar la aplicación
+
+## Contribución
+
+1. Fork el repositorio
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abrir un Pull Request
 
 ## Licencia
 
-Todos los derechos reservados - Consentido Visual
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## Contacto
+
+Nicolás Putallaz - nfputallaz@gmail.com
+
+Si te interesa usar el sistema para tu negocio, no dudes en contactarme!
+
+Link del Proyecto: [https://github.com/tu-usuario/NesvexSystem](https://github.com/tu-usuario/NesvexSystem)
